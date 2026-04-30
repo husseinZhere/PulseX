@@ -1,0 +1,21 @@
+# Quick Migration Commands
+
+## Create Migration
+```bash
+dotnet ef migrations add AddPasswordResetToken --project PulseX.Data --startup-project PulseX.API
+```
+
+## Update Database
+```bash
+dotnet ef database update --project PulseX.Data --startup-project PulseX.API
+```
+
+## Remove Last Migration (if needed)
+```bash
+dotnet ef migrations remove --project PulseX.Data --startup-project PulseX.API
+```
+
+## View All Migrations
+```bash
+dotnet ef migrations list --project PulseX.Data --startup-project PulseX.API
+```

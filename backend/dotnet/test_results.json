@@ -1,0 +1,478 @@
+﻿[
+    {
+        "Category":  "Auth",
+        "Endpoint":  "POST /api/auth/login",
+        "Method":  "POST",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "Auth",
+        "Endpoint":  "POST /api/auth/login (bad creds)",
+        "Method":  "POST",
+        "Status":  "BAD_REQUEST",
+        "Detail":  "HTTP 400 - Invalid email or password"
+    },
+    {
+        "Category":  "Auth",
+        "Endpoint":  "POST /api/auth/register/patient (dup)",
+        "Method":  "POST",
+        "Status":  "BAD_REQUEST",
+        "Detail":  "HTTP 400 - Email already exists"
+    },
+    {
+        "Category":  "Auth",
+        "Endpoint":  "POST /api/auth/forgot-password",
+        "Method":  "POST",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "Auth",
+        "Endpoint":  "POST /api/auth/verify-otp",
+        "Method":  "POST",
+        "Status":  "BAD_REQUEST",
+        "Detail":  "HTTP 400 - Invalid OTP code"
+    },
+    {
+        "Category":  "Auth",
+        "Endpoint":  "POST /api/auth/reset-password",
+        "Method":  "POST",
+        "Status":  "BAD_REQUEST",
+        "Detail":  "HTTP 400 - Passwords do not match"
+    },
+    {
+        "Category":  "Auth",
+        "Endpoint":  "GET /api/auth/test-auth",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "Auth",
+        "Endpoint":  "POST /api/auth/create/admin",
+        "Method":  "POST",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "User",
+        "Endpoint":  "GET /api/user/profile",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "User",
+        "Endpoint":  "PUT /api/user/profile",
+        "Method":  "PUT",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "User",
+        "Endpoint":  "PUT /api/user/settings",
+        "Method":  "PUT",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "User",
+        "Endpoint":  "GET /api/user/dashboard",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "User",
+        "Endpoint":  "PUT /api/user/health-data",
+        "Method":  "PUT",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "User",
+        "Endpoint":  "GET /api/user/health-data/options",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "User",
+        "Endpoint":  "POST /api/user/change-password",
+        "Method":  "POST",
+        "Status":  "BAD_REQUEST",
+        "Detail":  "HTTP 400 - "
+    },
+    {
+        "Category":  "User",
+        "Endpoint":  "POST /api/user/logout",
+        "Method":  "POST",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "Doctor",
+        "Endpoint":  "GET /api/doctor (all)",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "Doctor",
+        "Endpoint":  "GET /api/doctor/1 (profile by id)",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "Doctor",
+        "Endpoint":  "GET /api/doctor/1/ratings",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "Doctor",
+        "Endpoint":  "GET /api/doctor/dashboard",
+        "Method":  "GET",
+        "Status":  "FORBIDDEN",
+        "Detail":  "HTTP 403 - Wrong role"
+    },
+    {
+        "Category":  "Doctor",
+        "Endpoint":  "GET /api/doctor/profile",
+        "Method":  "GET",
+        "Status":  "FORBIDDEN",
+        "Detail":  "HTTP 403 - Wrong role"
+    },
+    {
+        "Category":  "Doctor",
+        "Endpoint":  "GET /api/doctor/pending-ratings",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "Doctor",
+        "Endpoint":  "GET /api/doctor/patients",
+        "Method":  "GET",
+        "Status":  "FORBIDDEN",
+        "Detail":  "HTTP 403 - Wrong role"
+    },
+    {
+        "Category":  "DoctorBooking",
+        "Endpoint":  "GET /api/doctorbooking/doctors",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "DoctorBooking",
+        "Endpoint":  "GET /api/doctorbooking/doctors/1/profile",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "DoctorBooking",
+        "Endpoint":  "GET /api/doctorbooking/doctors/1/slots",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "DoctorBooking",
+        "Endpoint":  "GET /api/doctorbooking/doctors/1/can-chat",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "DoctorBooking",
+        "Endpoint":  "GET /api/doctorbooking/appointments/1/video-available",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "DoctorSchedule",
+        "Endpoint":  "GET /api/doctorschedule/my-schedule",
+        "Method":  "GET",
+        "Status":  "FORBIDDEN",
+        "Detail":  "HTTP 403 - Wrong role"
+    },
+    {
+        "Category":  "DoctorSchedule",
+        "Endpoint":  "GET /api/doctorschedule/available/1",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "Appointment",
+        "Endpoint":  "GET /api/appointment/my-appointments",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "PatientDashboard",
+        "Endpoint":  "GET /api/patientdashboard",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "HealthData",
+        "Endpoint":  "POST /api/healthdata/add",
+        "Method":  "POST",
+        "Status":  "BAD_REQUEST",
+        "Detail":  "HTTP 400 - Patient not found"
+    },
+    {
+        "Category":  "HealthData",
+        "Endpoint":  "GET /api/healthdata/my-health-data",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "HealthSurvey",
+        "Endpoint":  "POST /api/healthsurvey/analyze",
+        "Method":  "POST",
+        "Status":  "BAD_REQUEST",
+        "Detail":  "HTTP 400 - "
+    },
+    {
+        "Category":  "MedicalRecords",
+        "Endpoint":  "GET /api/medicalrecords/my-records",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "MedicalRecords",
+        "Endpoint":  "GET /api/medicalrecords/my-records/ECG",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "MedicalRecords",
+        "Endpoint":  "GET /api/medicalrecords/generate-qr",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "MedicalRecords",
+        "Endpoint":  "GET /api/medicalrecords/download-pdf",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "Prescriptions",
+        "Endpoint":  "GET /api/prescriptions/my-prescriptions",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "Prescriptions",
+        "Endpoint":  "GET /api/prescriptions/my-prescriptions/stats",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "Message",
+        "Endpoint":  "GET /api/message/appointment/1",
+        "Method":  "GET",
+        "Status":  "BAD_REQUEST",
+        "Detail":  "HTTP 400 - Unauthorized"
+    },
+    {
+        "Category":  "Story",
+        "Endpoint":  "GET /api/story (published)",
+        "Method":  "GET",
+        "Status":  "NOT_FOUND",
+        "Detail":  "HTTP 404 - Resource not found (may be expected)"
+    },
+    {
+        "Category":  "Story",
+        "Endpoint":  "GET /api/story/1 (detail)",
+        "Method":  "GET",
+        "Status":  "BAD_REQUEST",
+        "Detail":  "HTTP 400 - Story not found"
+    },
+    {
+        "Category":  "Story",
+        "Endpoint":  "GET /api/story/1/comments",
+        "Method":  "GET",
+        "Status":  "BAD_REQUEST",
+        "Detail":  "HTTP 400 - Story not found"
+    },
+    {
+        "Category":  "Story",
+        "Endpoint":  "GET /api/story/my-stories",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "Story",
+        "Endpoint":  "GET /api/story/all (admin)",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "Story",
+        "Endpoint":  "GET /api/story/1/comments/admin",
+        "Method":  "GET",
+        "Status":  "BAD_REQUEST",
+        "Detail":  "HTTP 400 - Story not found"
+    },
+    {
+        "Category":  "Chatbot",
+        "Endpoint":  "POST /api/chatbot/chat",
+        "Method":  "POST",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "RiskAssessment",
+        "Endpoint":  "GET /api/riskassessment/latest",
+        "Method":  "GET",
+        "Status":  "NOT_FOUND",
+        "Detail":  "HTTP 404 - Resource not found (may be expected)"
+    },
+    {
+        "Category":  "RiskAssessment",
+        "Endpoint":  "GET /api/riskassessment/dashboard-summary",
+        "Method":  "GET",
+        "Status":  "NOT_FOUND",
+        "Detail":  "HTTP 404 - Resource not found (may be expected)"
+    },
+    {
+        "Category":  "RiskAssessment",
+        "Endpoint":  "GET /api/riskassessment/history",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "RiskAssessment",
+        "Endpoint":  "GET /api/riskassessment/all",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "DoctorNotifications",
+        "Endpoint":  "GET /api/notifications",
+        "Method":  "GET",
+        "Status":  "FORBIDDEN",
+        "Detail":  "HTTP 403 - Wrong role"
+    },
+    {
+        "Category":  "DoctorNotifications",
+        "Endpoint":  "GET /api/notifications/unread",
+        "Method":  "GET",
+        "Status":  "FORBIDDEN",
+        "Detail":  "HTTP 403 - Wrong role"
+    },
+    {
+        "Category":  "PatientNotifications",
+        "Endpoint":  "GET /api/patientnotifications",
+        "Method":  "GET",
+        "Status":  "NOT_FOUND",
+        "Detail":  "HTTP 404 - Resource not found (may be expected)"
+    },
+    {
+        "Category":  "PatientNotifications",
+        "Endpoint":  "GET /api/patientnotifications/unread",
+        "Method":  "GET",
+        "Status":  "NOT_FOUND",
+        "Detail":  "HTTP 404 - Resource not found (may be expected)"
+    },
+    {
+        "Category":  "PatientNotifications",
+        "Endpoint":  "GET /api/patientnotifications/recent",
+        "Method":  "GET",
+        "Status":  "NOT_FOUND",
+        "Detail":  "HTTP 404 - Resource not found (may be expected)"
+    },
+    {
+        "Category":  "PatientNotifications",
+        "Endpoint":  "PUT /api/patientnotifications/read-all",
+        "Method":  "PUT",
+        "Status":  "NOT_FOUND",
+        "Detail":  "HTTP 404 - Resource not found (may be expected)"
+    },
+    {
+        "Category":  "Admin",
+        "Endpoint":  "GET /api/admin/dashboard",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "Admin",
+        "Endpoint":  "GET /api/admin/users",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "Admin",
+        "Endpoint":  "GET /api/admin/activity-logs",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "Admin",
+        "Endpoint":  "GET /api/admin/doctors/pending",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "Reports",
+        "Endpoint":  "GET /api/reports (admin)",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "Reports",
+        "Endpoint":  "GET /api/reports/statistics",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "ReportsManagement",
+        "Endpoint":  "GET /api/admin/reports",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "ReportsManagement",
+        "Endpoint":  "GET /api/admin/reports/statistics",
+        "Method":  "GET",
+        "Status":  "PASS",
+        "Detail":  "HTTP 200"
+    },
+    {
+        "Category":  "VideoCall",
+        "Endpoint":  "GET /api/videocall/session/test-123",
+        "Method":  "GET",
+        "Status":  "NOT_FOUND",
+        "Detail":  "HTTP 404 - Resource not found (may be expected)"
+    }
+]

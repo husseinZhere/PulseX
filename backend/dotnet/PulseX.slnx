@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="PulseX.API/PulseX.API.csproj" />
+  <Project Path="PulseX.Core/PulseX.Core.csproj" />
+  <Project Path="PulseX.Data/PulseX.Data.csproj" />
+</Solution>

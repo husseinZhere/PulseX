@@ -1,0 +1,172 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Roboto:wght@300;400;500;700;900&display=swap");
+
+@import "tailwindcss";
+
+@import "flowbite-react/plugin/tailwindcss";
+@source "../.flowbite-react/class-list.json";
+@plugin "tailwind-scrollbar";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+body {
+  background-color: #fafafa;
+  font-family: "Roboto", sans-serif;
+  font-family: "Inter", sans-serif !important;
+}
+
+body.dark,
+.dark body {
+  background-color: #020617;
+  color: #e2e8f0;
+}
+
+@utility font-roboto {
+  font-family: "Roboto", sans-serif !important;
+}
+
+@theme {
+  /* أنميشن الدخول ناعم جداً */
+  --animate-fade-left: fade-left 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  --animate-fade-right: fade-right 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+
+  --animate-heart-soft: heart-soft 4s ease-in-out infinite;
+
+  --animate-float-slow: float-slow 6s ease-in-out infinite;
+
+  --animate-float-qr: float-qr 3s ease-in-out infinite;
+
+  --animate-bot-alive: bot-alive 4s ease-in-out infinite;
+
+  @keyframes fade-left {
+    from {
+      opacity: 0;
+      transform: translateX(-60px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes fade-right {
+    from {
+      opacity: 0;
+      transform: translateX(60px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes heart-soft {
+
+    0%,
+    100% {
+      transform: scale(1);
+      filter: drop-shadow(0 0 10px rgba(51, 60, 245, 0.1));
+    }
+
+    50% {
+      transform: scale(1.04);
+      filter: drop-shadow(0 0 30px rgba(51, 60, 245, 0.15));
+    }
+  }
+
+  @keyframes float-slow {
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+
+  @keyframes float-qr {
+
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+
+  @keyframes bot-alive {
+    0%, 100% {
+      transform: translateY(0) rotate(0deg) scale(1);
+      filter: drop-shadow(0px 4px 10px rgba(51, 60, 245, 0.3));
+    }
+    33% {
+      transform: translateY(-8px) rotate(-3deg) scale(1.02);
+      filter: drop-shadow(0px 8px 20px rgba(77, 234, 251, 0.5));
+    }
+    66% {
+      transform: translateY(-4px) rotate(3deg) scale(1.04);
+      filter: drop-shadow(0px 8px 25px rgba(51, 60, 245, 0.6));
+    }
+  }
+
+  /* الخطوط */
+  --font-poppins: "Poppins",
+  sans-serif;
+  --font-inter: "Inter",
+  sans-serif;
+  --default-font-family: "Inter",
+  sans-serif;
+
+  --color-brand-main: #333cf5;
+  --color-brand-secnd: #0913c3;
+  --color-brand-dark: #070e92;
+
+  --color-black-main-text: #010218;
+
+  --color-success-light: #00c853;
+  --color-success-main: #13a956;
+  --color-success-dark: #00953a;
+
+  --color-error: #dc2626;
+
+  --color-gray-text-dim: #6b7280;
+  --color-gray-text-dim2: #757575;
+  --color-black-hover: #0102184d;
+}
+
+.dark {
+  --color-black-main-text: #E2E8F0;
+  --color-gray-text-dim: #9CA3AF;
+  --color-gray-text-dim2: #9CA3AF;
+}
+
+@utility floating-card {
+  @apply absolute bg-white dark:bg-[#111827] p-4 rounded-2xl shadow-xl dark:shadow-2xl flex flex-col items-center z-20 border border-gray-50 dark:border-gray-700 transition-all duration-500 hover:scale-105;
+}
+
+@utility delay-1 {
+  animation-delay: 0.5s;
+}
+
+@utility delay-2 {
+  animation-delay: 1.5s;
+}
+
+@utility delay-3 {
+  animation-delay: 2.5s;
+}
+
+@keyframes drawECG {
+  from {
+    stroke-dashoffset: 1000;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
