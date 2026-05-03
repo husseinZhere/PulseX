@@ -49,6 +49,26 @@ namespace PulseX.API.Controllers
             }
         }
 
+        [HttpPost("ct/analyze")]
+        [Authorize(Roles = "Patient,Doctor")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> AnalyzeCt(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest(new { message = "No file uploaded" });
+
+            try
+            {
+                await using var stream = file.OpenReadStream();
+                var result = await _ai.AnalyzeCtAsync(stream, file.FileName, file.ContentType);
+                return Ok(new { success = false, result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
         [HttpPost("recommendation")]
         [Authorize(Roles = "Patient,Doctor")]
         public async Task<IActionResult> Recommendation([FromBody] AiFraminghamRequest request)

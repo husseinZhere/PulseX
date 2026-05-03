@@ -44,6 +44,19 @@ namespace PulseX.API.Services
             return payload?.Result;
         }
 
+        public async Task<AiXRayResult?> AnalyzeCtAsync(Stream fileStream, string fileName, string contentType)
+        {
+            using var content = new MultipartFormDataContent();
+            var fileContent = new StreamContent(fileStream);
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+            content.Add(fileContent, "file", fileName);
+
+            var resp = await _http.PostAsync("/api/ct/analyze", content);
+            resp.EnsureSuccessStatusCode();
+            var payload = await resp.Content.ReadFromJsonAsync<AiXRayResponse>(JsonOpts);
+            return payload?.Result;
+        }
+
         public async Task<string?> UploadEcgAsync(Stream fileStream, string fileName, string contentType, string? patientId = null)
         {
             using var content = new MultipartFormDataContent();
@@ -111,12 +124,26 @@ namespace PulseX.API.Services
 
     public class AiXRayResult
     {
-        public string? PredictedClass { get; set; }
+        // Core output fields (v4 contract)
+        public string? ImageType { get; set; }
         public string? Prediction { get; set; }
         public double Confidence { get; set; }
-        public Dictionary<string, double>? Probabilities { get; set; }
+        public string? RiskLevel { get; set; }          // Low | Medium | High | Critical
         public string? Recommendation { get; set; }
+        public string? ModelVersion { get; set; }
+        public string? Limitations { get; set; }
+
+        // Cardiac multi-label extras
+        public List<string>? PositiveFindings { get; set; }
+        public Dictionary<string, double>? FindingProbabilities { get; set; }
+
+        // Backward-compatibility fields
+        public string? PredictedClass { get; set; }
+        public Dictionary<string, double>? Probabilities { get; set; }
         public string? Mode { get; set; }
+        public string? Diagnosis { get; set; }
+        public bool Success { get; set; }
+        public string? Error { get; set; }
     }
 
     public class AiEcgResponse
