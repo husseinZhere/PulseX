@@ -1,9 +1,7 @@
 FROM python:3.11-slim
 
-# Set working directory
 WORKDIR /app
 
-# Install system dependencies
 RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     libsm6 \
@@ -13,20 +11,19 @@ RUN apt-get update && apt-get install -y \
     libgl1-mesa-glx \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for better caching
 COPY requirements.txt .
 
-# Install Python dependencies
+# Install CPU-only PyTorch first (avoids downloading the huge CUDA build)
+RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
+
+# Install remaining dependencies (torch/torchvision already satisfied above)
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
 COPY . .
 
-# Create necessary directories
 RUN mkdir -p uploads models test_images
 
-# Expose port
-EXPOSE 8000
+EXPOSE 10000
 
-# Run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Render injects $PORT at runtime; default to 10000 for local Docker runs
+CMD uvicorn main:app --host 0.0.0.0 --port ${PORT:-10000}
