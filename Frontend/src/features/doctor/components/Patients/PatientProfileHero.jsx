@@ -20,28 +20,28 @@ const PatientProfileHero = ({ patient, onAddMedical, onAddPrescription, onMessag
 
   return (
     <section
-      className="relative overflow-hidden rounded-[24px] border border-[#DDE3F0] bg-gradient-to-r from-[#F8FAFF] via-[#FFFFFF] to-[#EEF4FF] p-6 shadow-[0_8px_24px_rgba(15,23,42,0.08)] sm:p-8"
+      className="relative overflow-hidden rounded-[24px] border border-[#DDE3F0] dark:border-gray-700 bg-gradient-to-r from-[#F8FAFF] via-[#FFFFFF] to-[#EEF4FF] dark:from-[#0F172A] dark:via-[#111827] dark:to-[#0F172A] p-6 shadow-[0_8px_24px_rgba(15,23,42,0.08)] dark:shadow-none sm:p-8"
       aria-label="Patient profile header"
     >
-      <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[#DCE6FF] blur-[70px]" />
-      <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-[#E8F7FF] blur-[75px]" />
+      <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[#DCE6FF] dark:bg-[#1E3A8A]/20 blur-[70px]" />
+      <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-[#E8F7FF] dark:bg-[#1E3A5F]/20 blur-[75px]" />
 
       <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
         <div className="flex items-center gap-5">
           <div className="relative shrink-0">
-            <div className="h-[84px] w-[84px] rounded-full border-2 border-[#C7D2FE] p-[3px] shadow-[0_0_0_4px_rgba(99,102,241,0.15)]">
+            <div className="h-[84px] w-[84px] rounded-full border-2 border-[#C7D2FE] dark:border-indigo-700 p-[3px] shadow-[0_0_0_4px_rgba(99,102,241,0.15)]">
               <img
                 src={patient.avatar}
                 alt={patient.name}
                 className="w-full h-full rounded-full object-cover"
               />
             </div>
-            <span className="absolute bottom-1 right-1 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-500" />
+            <span className="absolute bottom-1 right-1 h-3.5 w-3.5 rounded-full border-2 border-white dark:border-[#111827] bg-emerald-500" />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <h1 className="text-[28px] font-extrabold leading-tight text-[#0F172A]">{patient.name}</h1>
-            <div className="flex items-center gap-2 text-[14px] text-[#475569]">
+            <h1 className="text-[28px] font-extrabold leading-tight text-[#0F172A] dark:text-[#E2E8F0]">{patient.name}</h1>
+            <div className="flex items-center gap-2 text-[14px] text-[#475569] dark:text-gray-400">
               <span>{patient.age} years old</span>
               <span className="h-1 w-1 rounded-full bg-[#94A3B8]" />
               <span>{patient.gender}</span>
@@ -62,18 +62,18 @@ const PatientProfileHero = ({ patient, onAddMedical, onAddPrescription, onMessag
                 {patient.riskLevel}
               </span>
               {typeof patient.riskScore === 'number' ? (
-                <span className="inline-flex items-center rounded-full border border-[#D1D5DB] bg-[#F8FAFC] px-3 py-1 text-[12px] text-[#475569]">
+                <span className="inline-flex items-center rounded-full border border-[#D1D5DB] dark:border-gray-600 bg-[#F8FAFC] dark:bg-[#1E293B] px-3 py-1 text-[12px] text-[#475569] dark:text-gray-300">
                   Risk score: {Math.round(patient.riskScore)}%
                 </span>
               ) : null}
               {patient.lastVisit && (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#D1D5DB] bg-[#F8FAFC] px-3 py-1 text-[12px] text-[#475569]">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#D1D5DB] dark:border-gray-600 bg-[#F8FAFC] dark:bg-[#1E293B] px-3 py-1 text-[12px] text-[#475569] dark:text-gray-300">
                   <LuClock className="text-[11px]" />
                   Last visit: {patient.lastVisit}
                 </span>
               )}
               {patient.chatExpired && (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#D1D5DB] bg-[#F8FAFC] px-3 py-1 text-[12px] text-[#475569]">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#D1D5DB] dark:border-gray-600 bg-[#F8FAFC] dark:bg-[#1E293B] px-3 py-1 text-[12px] text-[#475569] dark:text-gray-300">
                   <LuShieldCheck className="text-[11px]" />
                   {patient.chatExpired}
                 </span>
@@ -87,7 +87,7 @@ const PatientProfileHero = ({ patient, onAddMedical, onAddPrescription, onMessag
           <button
             type="button"
             onClick={onAddMedical}
-            className="group flex h-12 cursor-pointer items-center justify-center gap-2 rounded-[12px] border border-[#CBD5E1] bg-white px-5 text-[14px] font-medium text-[#1E293B] transition-all hover:border-[#94A3B8] hover:shadow-sm"
+            className="group flex h-12 cursor-pointer items-center justify-center gap-2 rounded-[12px] border border-[#CBD5E1] dark:border-gray-600 bg-white dark:bg-[#1E293B] px-5 text-[14px] font-medium text-[#1E293B] dark:text-[#E2E8F0] transition-all hover:border-[#94A3B8] dark:hover:border-gray-400 hover:shadow-sm"
           >
             <HiOutlineDocumentPlus className="text-[18px] text-[#60A5FA] group-hover:scale-110 transition-transform" />
             Add Medical Records
@@ -95,7 +95,7 @@ const PatientProfileHero = ({ patient, onAddMedical, onAddPrescription, onMessag
           <button
             type="button"
             onClick={onAddPrescription}
-            className="group flex h-12 cursor-pointer items-center justify-center gap-2 rounded-[12px] border border-[#CBD5E1] bg-white px-5 text-[14px] font-medium text-[#1E293B] transition-all hover:border-[#94A3B8] hover:shadow-sm"
+            className="group flex h-12 cursor-pointer items-center justify-center gap-2 rounded-[12px] border border-[#CBD5E1] dark:border-gray-600 bg-white dark:bg-[#1E293B] px-5 text-[14px] font-medium text-[#1E293B] dark:text-[#E2E8F0] transition-all hover:border-[#94A3B8] dark:hover:border-gray-400 hover:shadow-sm"
           >
             <HiOutlineDocumentText className="text-[18px] text-[#A78BFA] group-hover:scale-110 transition-transform" />
             Add Prescription

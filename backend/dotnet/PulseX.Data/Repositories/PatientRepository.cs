@@ -48,6 +48,16 @@ namespace PulseX.Data.Repositories
             await _context.SaveChangesAsync();
         }
 
+        public async Task<List<Patient>> GetAllAsync(int limit = 8)
+        {
+            return await _context.Patients
+                .Include(p => p.User)
+                .Where(p => p.User != null)
+                .OrderBy(p => p.Id)
+                .Take(limit)
+                .ToListAsync();
+        }
+
         public async Task<List<Patient>> SearchPatientsAsync(string searchTerm)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))

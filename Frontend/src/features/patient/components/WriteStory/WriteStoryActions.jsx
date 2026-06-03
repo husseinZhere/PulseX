@@ -1,9 +1,9 @@
-const WriteStoryActions = ({ onCancel, onPublish }) => {
+const WriteStoryActions = ({ onCancel, onPublish, isEditing }) => {
   return (
     <footer className="flex justify-end gap-3 pt-2">
       <button
         onClick={onCancel}
-        className="px-7 py-2.5  cursor-pointer rounded-full border border-gray-300 text-sm font-semibold text-black-main-text dark:text-[#E2E8F0] bg-white dark:bg-[#111827] hover:bg-gray-50 transition"
+        className="px-7 py-2.5  cursor-pointer rounded-full border border-gray-300 dark:border-gray-700 text-sm font-semibold text-black-main-text dark:text-[#E2E8F0] bg-white dark:bg-[#111827] hover:bg-gray-50 dark:hover:bg-[#1E293B] transition"
       >
         Cancel
       </button>
@@ -11,7 +11,7 @@ const WriteStoryActions = ({ onCancel, onPublish }) => {
         onClick={onPublish}
         className="px-7 py-2.5 rounded-full cursor-pointer bg-brand-main text-white text-sm font-semibold hover:bg-[#2730d4] transition shadow-sm"
       >
-        Publish Story
+        {isEditing ? 'Save Changes' : 'Publish Story'}
       </button>
     </footer>
   );

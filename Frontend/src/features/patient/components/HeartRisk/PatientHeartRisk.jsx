@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../context/AuthContext';
 import { analyzeXRay, uploadEcgToAi } from '../../../../services/aiService';
 import { saveAiRiskSnapshot } from '../../../../services/riskAssessmentService';
+import { uploadMedicalRecord } from '../../../../services/medicalRecordService';
 import { MdOutlineMonitorHeart } from 'react-icons/md';
 import { LuCloudUpload, LuCircleCheck } from 'react-icons/lu';
 import { HiOutlineXMark } from 'react-icons/hi2';
@@ -534,6 +535,7 @@ const PatientHeartRisk = () => {
   const [isDark, setIsDark] = useState(false);
 
   const [ecgShowResult, setEcgShowResult] = useState(false);
+  const [ecgSaveError, setEcgSaveError] = useState('');
 
   const [xrayFile, setXrayFile] = useState(null);
   const [xrayAnalyzing, setXrayAnalyzing] = useState(false);
@@ -552,29 +554,48 @@ const PatientHeartRisk = () => {
 
   const mapXRayToRisk = (result) => {
     if (!result) return RISK_VARIANTS.low;
-    const predicted = (result.predicted_class || result.prediction || result.diagnosis || '').toLowerCase();
-    const confidence = result.confidence || 0;
-    const confidencePct = Math.round(confidence * 100);
-    const isAbnormal =
-      predicted.includes('abnormal') ||
-      predicted.includes('cardiomegaly') ||
-      predicted.includes('effusion') ||
-      predicted.includes('edema') ||
-      predicted.includes('consolidation') ||
-      predicted.includes('atelectasis');
-    if (isAbnormal) {
-      if (confidence >= 0.7) return { ...RISK_VARIANTS.high, percentage: confidencePct || RISK_VARIANTS.high.percentage };
-      return { ...RISK_VARIANTS.medium, percentage: confidencePct || RISK_VARIANTS.medium.percentage };
+
+    const level = (result.riskLevel || '').toLowerCase();
+    const confidencePct = Math.round(result.confidence || 0);
+
+    // Derive a risk percentage (higher number = more risk).
+    // finding_probabilities contains the actual probability per finding (e.g. { Cardiomegaly: 8 }).
+    // Using its max is the most intuitive display: low cardiomegaly prob → low gauge.
+    let riskPct = null;
+    if (result.finding_probabilities && typeof result.finding_probabilities === 'object') {
+      const vals = Object.values(result.finding_probabilities).filter(v => typeof v === 'number');
+      if (vals.length > 0) riskPct = Math.round(Math.max(...vals));
     }
-    if (confidence >= 0.7) return { ...RISK_VARIANTS.low, percentage: confidencePct || RISK_VARIANTS.low.percentage };
-    return { ...RISK_VARIANTS.medium, percentage: confidencePct || RISK_VARIANTS.medium.percentage };
+    // Binary fallback mode returns { probabilities: { normal, abnormal } }
+    if (riskPct == null && typeof result.probabilities?.abnormal === 'number') {
+      riskPct = Math.round(result.probabilities.abnormal);
+    }
+    // Last resort: invert confidence for low-risk cases so gauge reads low
+    if (riskPct == null) {
+      riskPct = (level === 'low') ? Math.max(5, 100 - confidencePct) : confidencePct;
+    }
+
+    if (level === 'critical' || level === 'high') {
+      return { ...RISK_VARIANTS.high, percentage: riskPct || RISK_VARIANTS.high.percentage };
+    }
+    if (level === 'medium') {
+      return { ...RISK_VARIANTS.medium, percentage: riskPct || RISK_VARIANTS.medium.percentage };
+    }
+    return { ...RISK_VARIANTS.low, percentage: riskPct || RISK_VARIANTS.low.percentage };
   };
 
   const handleEcgUpload = async (file) => {
+    setEcgSaveError('');
+    // AI upload is non-critical — fire in background and ignore failure
+    uploadEcgToAi(file).catch(() => {});
+    // Medical record upload is critical — must succeed
     try {
-      await uploadEcgToAi(file);
-    } catch {
-      // treat as success — file is uploaded even if AI storage fails
+      await uploadMedicalRecord('ECG', file, 'Uploaded from Heart Risk Assessment');
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || 'Could not save ECG to medical records.';
+      setEcgSaveError(msg);
+      console.error('ECG medical record save failed:', err?.response?.data ?? err);
+      throw err; // re-throw so UploadCard knows the upload failed
     }
   };
 
@@ -696,6 +717,13 @@ const PatientHeartRisk = () => {
       {xrayError && (
         <div className="mb-6 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-300">
           {xrayError}
+        </div>
+      )}
+
+      {/* ── ECG Save Error ── */}
+      {ecgSaveError && (
+        <div className="mb-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-300">
+          <span className="font-semibold">Upload Error: </span>{ecgSaveError}
         </div>
       )}
 

@@ -74,6 +74,7 @@ namespace PulseX.Core.DTOs.Patient
         public string DoctorName { get; set; } = string.Empty;
         public string? DoctorSpecialty { get; set; }
         public string? DoctorProfilePicture { get; set; }
+        public string? ClinicLocation { get; set; }
         public DateTime AppointmentDate { get; set; }
         public string Status { get; set; } = string.Empty;
         public string TimeSlot { get; set; } = string.Empty;

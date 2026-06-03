@@ -351,7 +351,7 @@ const PatientQRCode = () => {
   };
 
   return (
-    <main className="flex flex-col gap-6 p-[24px] bg-[#FAFBFF] dark:bg-[#0B1120] rounded-[22px]">
+    <main className="flex flex-col gap-6 p-[24px] bg-white dark:bg-[#111827] rounded-[22px]">
       <Toast
         visible={toast.visible}
         title={toast.title}

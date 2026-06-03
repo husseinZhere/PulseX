@@ -5,6 +5,15 @@ import {
   HiStar,
 } from 'react-icons/hi';
 
+const to12h = (t) => {
+  if (!t) return t;
+  const [hStr, mStr = '00'] = t.split(':');
+  const h = parseInt(hStr, 10);
+  const period = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  return `${h12}:${mStr} ${period}`;
+};
+
 const BookingSidebar = ({
   doctor,
   stepperDateLabel,
@@ -49,7 +58,7 @@ const BookingSidebar = ({
             <HiOutlineClock className={`text-sm ${selectedTime ? 'text-white' : 'text-gray-300'}`} aria-label="Time" />
           </div>
           <span className={`text-xs font-bold whitespace-nowrap text-center lg:text-left ${selectedTime ? 'text-brand-main' : 'text-gray-300'}`}>
-            {selectedTime || 'Select Time'}
+            {selectedTime ? to12h(selectedTime) : 'Select Time'}
           </span>
           <div className="lg:hidden absolute top-4 left-[50%] w-full h-[2px] border-t-2 border-dashed border-gray-200 dark:border-gray-700 z-0" />
         </div>

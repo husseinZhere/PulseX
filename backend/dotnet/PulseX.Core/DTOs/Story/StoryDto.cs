@@ -15,7 +15,7 @@ namespace PulseX.Core.DTOs.Story
         public string TimeAgo { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
 
-        // True when this comment has at least one Pending report — drives the
+        // True when this comment has at least one Pending report ï¿½ drives the
         // red "Flagged for Review" banner shown in the admin All Comments view.
         public bool IsFlagged { get; set; }
 
@@ -27,6 +27,7 @@ namespace PulseX.Core.DTOs.Story
     {
         public int Id { get; set; }
         public int PatientId { get; set; }
+        public int PatientUserId { get; set; }
         public string PatientName { get; set; } = string.Empty;
         public string? PatientAvatar { get; set; }
         public string Title { get; set; } = string.Empty;
@@ -55,7 +56,7 @@ namespace PulseX.Core.DTOs.Story
         public List<StoryDto> RelatedStories { get; set; } = new();
     }
 
-    // Full "All Comments" page response — top-level comments with nested replies
+    // Full "All Comments" page response ï¿½ top-level comments with nested replies
     public class StoryCommentsPageDto
     {
         public int StoryId { get; set; }

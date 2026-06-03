@@ -96,7 +96,7 @@ namespace PulseX.API.Services
                 };
             }
 
-            // Check appointment status
+            // Only block cancelled appointments — Completed, Scheduled, Confirmed can all join
             if (appointment.Status == AppointmentStatus.Cancelled)
             {
                 return new VideoCallAvailabilityDto
@@ -107,33 +107,11 @@ namespace PulseX.API.Services
                 };
             }
 
-            if (appointment.Status == AppointmentStatus.Completed)
-            {
-                return new VideoCallAvailabilityDto
-                {
-                    AppointmentId = appointmentId,
-                    IsAvailable = false,
-                    Reason = "Appointment has already been completed"
-                };
-            }
-
-            // Must be Scheduled or Confirmed
-            if (appointment.Status != AppointmentStatus.Scheduled && 
-                appointment.Status != AppointmentStatus.Confirmed)
-            {
-                return new VideoCallAvailabilityDto
-                {
-                    AppointmentId = appointmentId,
-                    IsAvailable = false,
-                    Reason = $"Appointment status is {appointment.Status}"
-                };
-            }
-
-            // Check time window
+            // Check time window — 5 min before until 24 h after (same window as chat)
             var now = EgyptNow;
             var appointmentTime = appointment.AppointmentDate;
             var joinWindowStart = appointmentTime.AddMinutes(-JOIN_WINDOW_MINUTES_BEFORE);
-            var joinWindowEnd = appointmentTime.AddMinutes(DEFAULT_CALL_DURATION_MINUTES);
+            var joinWindowEnd = appointmentTime.AddHours(24);
 
             var minutesUntilAvailable = (int)(joinWindowStart - now).TotalMinutes;
             var minutesRemaining = (int)(joinWindowEnd - now).TotalMinutes;
@@ -270,17 +248,6 @@ namespace PulseX.API.Services
         /// </summary>
         public async Task<JoinVideoCallResponseDto> JoinCallAsync(int appointmentId, int userId, string role)
         {
-            // First check availability
-            var availability = await CheckAvailabilityAsync(appointmentId, userId);
-            if (!availability.CanJoin)
-            {
-                return new JoinVideoCallResponseDto
-                {
-                    Success = false,
-                    Message = availability.Reason ?? "Cannot join call at this time"
-                };
-            }
-
             var appointment = await _context.Appointments
                 .Include(a => a.Doctor).ThenInclude(d => d.User)
                 .Include(a => a.Patient).ThenInclude(p => p.User)
@@ -635,11 +602,9 @@ namespace PulseX.API.Services
             var appointment = session.Appointment;
             appointment.IsVideoCallActive = false;
             appointment.UpdatedAt = DateTime.UtcNow;
-
-            if (hadConnectedConsultation)
-            {
-                appointment.Status = AppointmentStatus.Completed;
-            }
+            // Do NOT set appointment.Status = Completed here.
+            // Appointment status is managed by the 24-hour auto-complete logic in AppointmentService,
+            // so multiple call sessions can be started within the same appointment window.
 
             await _context.SaveChangesAsync();
 
@@ -854,6 +819,37 @@ namespace PulseX.API.Services
 
             if (!isDoctorCaller && !isPatientCaller)
             {
+                return null;
+            }
+
+            // Mirror the CanChat gate from AppointmentService: a participant can
+            // only ring the other party while the chat window is open. Blocks
+            // a client from bypassing the disabled UI button and ringing anyway.
+            if (appointment.Status == AppointmentStatus.Cancelled)
+            {
+                return null;
+            }
+
+            var nowUtc = DateTime.UtcNow;
+            var nowEgypt = EgyptNow;
+            var chatOpen = false;
+            if (appointment.ChatExpiryDate.HasValue && nowUtc < appointment.ChatExpiryDate.Value)
+            {
+                chatOpen = true;
+            }
+            else if (appointment.PaymentMethod == PaymentMethod.Cash &&
+                     !appointment.ChatExpiryDate.HasValue &&
+                     nowEgypt >= appointment.AppointmentDate &&
+                     nowEgypt <= appointment.AppointmentDate.AddHours(24))
+            {
+                chatOpen = true;
+            }
+
+            if (!chatOpen)
+            {
+                _logger.LogInformation(
+                    "Blocked NotifyIncomingCall for appointment {AppointmentId} — chat window closed",
+                    appointmentId);
                 return null;
             }
 

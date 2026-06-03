@@ -1,78 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import PatientSidebar from '../PatientSidebar/PatientSidebar';
 import PatientHeader from '../PatientHeader/PatientHeader';
 import PatientChatbot from '../PatientChatbot/PatientChatbot';
-import PatientRatingModal from '../PatientRatingModal/PatientRatingModal';
 import { HiBars3 } from 'react-icons/hi2';
 import { useAuth } from '../../../../context/AuthContext';
 import IncomingCallOverlay from '../../../../components/VideoCall/IncomingCallOverlay';
-import { getPendingRatings, submitDoctorRating } from '../../../../services/doctorService';
-import { resolveFileUrl } from '../../../../utils/api';
-
-const formatApptDate = (dateStr) => {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return '';
-  return (
-    d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) +
-    ' at ' +
-    d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  );
-};
 
 const PatientMainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
-  const [ratingQueue, setRatingQueue] = useState([]);
-  const [ratingModalOpen, setRatingModalOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout, user } = useAuth();
-
-  useEffect(() => {
-    if (!user) return;
-    let cancelled = false;
-    const timer = setTimeout(async () => {
-      try {
-        const pending = await getPendingRatings();
-        if (cancelled) return;
-        if (Array.isArray(pending) && pending.length > 0) {
-          setRatingQueue(pending);
-          setRatingModalOpen(true);
-        }
-      } catch {
-        // silent — patient may have no completed appointments
-      }
-    }, 1500);
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-    };
-  }, [user]);
-
-  const currentPending = ratingQueue[0] ?? null;
-
-  const advanceQueue = () => {
-    setRatingQueue((prev) => {
-      const next = prev.slice(1);
-      if (next.length === 0) setRatingModalOpen(false);
-      return next;
-    });
-  };
-
-  const handleRatingSubmit = async (rating, feedback) => {
-    if (!currentPending) return;
-    try {
-      await submitDoctorRating({
-        appointmentId: currentPending.appointmentId,
-        rating,
-        review: feedback,
-      });
-    } catch {
-      // silent fail — modal still closes
-    }
-  };
+  const { logout } = useAuth();
 
   const excludedRoutes = ['/patient/messages', '/patient/settings', '/chat-page'];
   const shouldShowChatbot = !excludedRoutes.includes(location.pathname);
@@ -174,18 +114,6 @@ const PatientMainLayout = () => {
           </div>
         </div>
       )}
-
-      <PatientRatingModal
-        isOpen={ratingModalOpen && !!currentPending}
-        onClose={advanceQueue}
-        onSubmit={handleRatingSubmit}
-        doctor={currentPending ? {
-          name: currentPending.doctorName,
-          specialty: currentPending.doctorSpecialization,
-          img: resolveFileUrl(currentPending.doctorProfilePicture || ''),
-          appointmentDate: formatApptDate(currentPending.appointmentDate),
-        } : null}
-      />
 
       <IncomingCallOverlay currentRole="Patient" />
     </div>

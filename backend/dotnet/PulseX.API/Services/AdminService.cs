@@ -41,6 +41,13 @@ namespace PulseX.API.Services
             _webHostEnvironment = webHostEnvironment;
         }
 
+        private static string WithDrPrefix(string name)
+        {
+            var t = name.Trim();
+            return System.Text.RegularExpressions.Regex.IsMatch(t, @"^DR\.?\s", System.Text.RegularExpressions.RegexOptions.IgnoreCase)
+                ? t : $"DR. {t}";
+        }
+
         public async Task<UserManagementDto> CreateDoctorByAdminAsync(CreateDoctorByAdminDto dto, int adminUserId, string? profilePicturePath = null)
         {
             if (await _userRepository.ExistsAsync(dto.Email))
@@ -48,7 +55,7 @@ namespace PulseX.API.Services
                 throw new Exception("Email already exists");
             }
 
-            var fullName = $"{dto.FirstName} {dto.LastName}".Trim();
+            var fullName = WithDrPrefix($"{dto.FirstName} {dto.LastName}".Trim());
 
             var user = new User
             {
@@ -166,7 +173,12 @@ namespace PulseX.API.Services
 
             if (!string.IsNullOrEmpty(dto.FirstName) && !string.IsNullOrEmpty(dto.LastName))
             {
-                user.FullName = $"{dto.FirstName} {dto.LastName}".Trim();
+                user.FullName = WithDrPrefix($"{dto.FirstName} {dto.LastName}".Trim());
+            }
+
+            if (!string.IsNullOrEmpty(dto.Email))
+            {
+                user.Email = dto.Email.Trim().ToLowerInvariant();
             }
 
             if (!string.IsNullOrEmpty(dto.PhoneNumber))
@@ -249,6 +261,11 @@ namespace PulseX.API.Services
             if (!string.IsNullOrEmpty(dto.FirstName) && !string.IsNullOrEmpty(dto.LastName))
             {
                 user.FullName = $"{dto.FirstName} {dto.LastName}".Trim();
+            }
+
+            if (!string.IsNullOrEmpty(dto.Email))
+            {
+                user.Email = dto.Email.Trim().ToLowerInvariant();
             }
 
             if (!string.IsNullOrEmpty(dto.PhoneNumber))

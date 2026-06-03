@@ -10,6 +10,12 @@ import './AdminDashboard.css';
 import { getAdminDashboard, getAllUsers } from '../../../../services/adminService';
 import { resolveFileUrl } from '../../../../utils/api';
 
+const withDrPrefix = (name) => {
+  if (!name) return '';
+  const t = name.trim();
+  return /^dr\.?\s/i.test(t) ? t : `DR. ${t}`;
+};
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
 
@@ -38,7 +44,7 @@ export default function AdminDashboard() {
           .slice(0, 3)
           .map((u) => ({
             id: u.id,
-            name: u.fullName,
+            name: withDrPrefix(u.fullName),
             email: u.email,
             image: resolveFileUrl(u.profilePicture || ''),
           }));

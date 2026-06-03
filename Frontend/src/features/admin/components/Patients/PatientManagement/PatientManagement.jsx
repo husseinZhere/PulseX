@@ -9,6 +9,7 @@ import PatientsIcon from "./PatientsIcon";
 import exportPatientsToExcel from "./exportPatientsToExcel";
 import { getAllUsers, deletePatient } from "../../../../../services/adminService";
 import { resolveFileUrl } from "../../../../../utils/api";
+import UserAvatar from "../../shared/UserAvatar";
 
 const ROWS_OPTIONS = [5, 10, 25, 50];
 
@@ -291,7 +292,7 @@ export default function PatientManagement() {
                           </td>
                           <td className="block sm:table-cell px-4 py-3 text-center sm:text-left">
                             <div className="flex flex-row items-center justify-center sm:justify-start gap-3 rounded-xl bg-[#F7F7FA] dark:bg-[#0F172A] px-3 py-2 sm:bg-transparent sm:dark:bg-transparent sm:px-0 sm:py-0">
-                              <img src={patient.image} alt={patient.fullName} className="w-9 h-9 rounded-full object-cover shrink-0 border border-gray-100 dark:border-gray-800" />
+                              <UserAvatar src={patient.image} name={patient.fullName} size={36} />
                               <span className="text-[14px] font-semibold text-black-main-text dark:text-[#E2E8F0] truncate max-w-[160px]">{patient.fullName}</span>
                             </div>
                           </td>

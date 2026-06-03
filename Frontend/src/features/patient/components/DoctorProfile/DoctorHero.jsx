@@ -1,6 +1,8 @@
-import { HiOutlineChat, HiStar } from 'react-icons/hi';
+import { HiOutlineChat, HiStar, HiOutlineStar } from 'react-icons/hi';
 
-const DoctorHero = ({ doctor, onBook, onMessage }) => {
+const DoctorHero = ({ doctor, onBook, onMessage, onWriteReview }) => {
+  const canReview = Boolean(doctor.canReview);
+
   return (
     <header className="bg-brand-main rounded-2xl p-6 sm:p-10 lg:p-14 mb-5 flex flex-col md:flex-row items-center md:items-start lg:items-center gap-6 text-center sm:text-left">
       <div className="flex flex-col sm:flex-row items-center sm:items-start lg:items-center gap-4 flex-1 w-full">
@@ -41,6 +43,16 @@ const DoctorHero = ({ doctor, onBook, onMessage }) => {
           <HiOutlineChat className="text-base" aria-label="Message" />
           Message Now
         </button>
+        {canReview && (
+          <button
+            onClick={onWriteReview}
+            title="Share your experience with this doctor"
+            className="flex items-center justify-center gap-2 font-semibold text-base px-6 py-2.5 rounded-xl border border-white/30 bg-white/15 text-white hover:bg-white/25 transition w-full md:w-50 cursor-pointer"
+          >
+            <HiOutlineStar className="text-base" aria-label="Write review" />
+            Write a Review
+          </button>
+        )}
       </div>
     </header>
   );

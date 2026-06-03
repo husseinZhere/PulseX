@@ -50,5 +50,11 @@ namespace PulseX.Data.Repositories
             return await _context.DoctorRatings
                 .AnyAsync(r => r.AppointmentId == appointmentId);
         }
+
+        public async Task<bool> HasPatientRatedDoctorAsync(int patientId, int doctorId)
+        {
+            return await _context.DoctorRatings
+                .AnyAsync(r => r.PatientId == patientId && r.DoctorId == doctorId);
+        }
     }
 }

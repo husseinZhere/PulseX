@@ -25,3 +25,10 @@ dist-ssr
 node_modules/
 
 .vercel
+
+# Environment variables (never commit secrets)
+.env
+.env.local
+.env.production.local
+
+.vercel

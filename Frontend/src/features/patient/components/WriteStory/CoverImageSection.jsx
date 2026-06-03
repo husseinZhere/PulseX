@@ -9,7 +9,7 @@ const CoverImageSection = ({ fileInputRef, imagePreview, handleImageChange, remo
       </label>
       <div
         onClick={() => fileInputRef.current.click()}
-        className="relative h-50 rounded-xl border border-gray-200 dark:border-gray-700 bg-[#F9FAFB] cursor-pointer flex flex-col items-center justify-center overflow-hidden transition hover:border-brand-main"
+        className="relative h-50 rounded-xl border border-gray-200 dark:border-gray-700 bg-[#F9FAFB] dark:bg-[#0B1120] cursor-pointer flex flex-col items-center justify-center overflow-hidden transition hover:border-brand-main"
       >
         {imagePreview ? (
           <>

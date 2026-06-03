@@ -1,6 +1,7 @@
 import React from 'react';
 import { FiEdit3, FiTrash2 } from "react-icons/fi";
 import { FaAngleRight, FaAngleLeft } from "react-icons/fa6";
+import UserAvatar from "../../shared/UserAvatar";
 
 export default function DataTable({
   data,
@@ -104,11 +105,7 @@ export default function DataTable({
                   </td>
                   <td className="block sm:table-cell px-4 py-3 text-center sm:text-left">
                     <div className="flex flex-row items-center justify-center sm:justify-start gap-3 rounded-xl bg-[#F7F7FA] dark:bg-[#0F172A] px-3 py-2 sm:bg-transparent sm:dark:bg-transparent sm:px-0 sm:py-0">
-                      <img
-                        src={item.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.fullName)}`}
-                        alt={item.fullName}
-                        className="w-9 h-9 rounded-full object-cover shrink-0 border border-gray-100 dark:border-gray-800"
-                      />
+                      <UserAvatar src={item.image} name={item.fullName} size={36} />
                       <span className="text-[16px] font-semibold text-black-main-text dark:text-[#E2E8F0] truncate max-w-[170px]">
                         {item.fullName}
                       </span>

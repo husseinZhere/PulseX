@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  LuBell,
   LuCalendar,
   LuCheck,
   LuLock,
@@ -9,18 +8,22 @@ import {
   LuMoon,
   LuPhone,
   LuUser,
+  LuVolume2,
 } from 'react-icons/lu';
 import { HiOutlineCog6Tooth } from 'react-icons/hi2';
 import Toast from '../../../../../components/Toast/Toast';
 import { GenderToggle } from '../../shared';
 import PasswordChangeModal from './PasswordChangeModal';
 import { useTheme } from '../../../../../context/ThemeContext';
+import { isMuted, toggleMute } from '../../../../../utils/notificationSound';
 import { readProfilePhoto, writeProfilePhoto } from '../../../../../utils/profilePhotoStorage';
 import { useAuth } from '../../../../../context/AuthContext';
+import { getAdminProfile, uploadAdminProfilePicture } from '../../../../../services/adminService';
+import { resolveFileUrl } from '../../../../../utils/api';
 
 export default function SettingsProfileView() {
   const { user } = useAuth();
-  const [toast, setToast] = useState({ visible: false, title: '', msg: '' });
+  const [toast, setToast] = useState({ visible: false, title: '', msg: '', type: 'success' });
   const fileRef = useRef(null);
   const [photo, setPhoto] = useState(() => readProfilePhoto('admin') || null);
   const [form, setForm] = useState({
@@ -44,12 +47,35 @@ export default function SettingsProfileView() {
     }
   }, [user]);
 
+  useEffect(() => {
+    let ignore = false;
+    getAdminProfile()
+      .then((profile) => {
+        if (ignore || !profile) return;
+        const [firstName, ...rest] = (profile.fullName || '').split(' ');
+        setForm((prev) => ({
+          ...prev,
+          firstName: firstName || prev.firstName,
+          lastName: rest.join(' ') || prev.lastName,
+          email: profile.email || prev.email,
+          phone: profile.phoneNumber || prev.phone,
+        }));
+        if (profile.profilePicture) {
+          const url = resolveFileUrl(profile.profilePicture);
+          setPhoto(url);
+          writeProfilePhoto('admin', url);
+        }
+      })
+      .catch(() => {});
+    return () => { ignore = true; };
+  }, []);
+
   const [pwModal, setPwModal] = useState(false);
-  const [emailNotif, setEmailNotif] = useState(true);
+  const [muted, setMuted] = useState(isMuted);
   const { isDark, toggleTheme } = useTheme();
 
-  const showToast = (title, msg) => {
-    setToast({ visible: true, title, msg });
+  const showToast = (title, msg, type = 'success') => {
+    setToast({ visible: true, title, msg, type });
     setTimeout(() => setToast((current) => ({ ...current, visible: false })), 3500);
   };
 
@@ -57,14 +83,31 @@ export default function SettingsProfileView() {
     const file = event.target.files[0];
     if (!file) return;
 
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('File Too Large', 'Photo must be under 5MB.', 'error');
+      event.target.value = '';
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = () => {
-      const nextPhoto = reader.result;
-      setPhoto(nextPhoto);
-      writeProfilePhoto('admin', nextPhoto);
-      showToast('Photo Updated', 'Your profile photo has been changed successfully.');
+      setPhoto(reader.result);
     };
     reader.readAsDataURL(file);
+
+    uploadAdminProfilePicture(file)
+      .then((response) => {
+        const serverPhoto = response?.profilePicture || response?.photoUrl || '';
+        const resolvedPhoto = resolveFileUrl(serverPhoto);
+        if (resolvedPhoto) {
+          setPhoto(resolvedPhoto);
+          writeProfilePhoto('admin', resolvedPhoto);
+        }
+        showToast('Photo Updated', 'Your profile photo has been changed successfully.');
+      })
+      .catch(() => {
+        showToast('Upload Failed', 'Could not upload photo. Please try again.');
+      });
 
     event.target.value = '';
   };
@@ -79,7 +122,7 @@ export default function SettingsProfileView() {
         visible={toast.visible}
         title={toast.title}
         message={toast.msg}
-        type="success"
+        type={toast.type}
         onClose={() => setToast((current) => ({ ...current, visible: false }))}
       />
 
@@ -116,6 +159,10 @@ export default function SettingsProfileView() {
                     photo ||
                     `https://ui-avatars.com/api/?name=${encodeURIComponent(`${form.firstName} ${form.lastName}`)}&background=333CF5&color=fff&size=128`
                   }
+                  onError={(e) => {
+                    setPhoto(null);
+                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(`${form.firstName} ${form.lastName}`)}&background=333CF5&color=fff&size=128`;
+                  }}
                   className="h-full w-full object-cover"
                   alt="Profile"
                 />
@@ -225,16 +272,16 @@ export default function SettingsProfileView() {
             }
           />
           <SettingRow
-            icon={<LuBell />}
-            title="Email Notifications"
-            desc="Receive email updates about your account"
-            action={<Toggle checked={emailNotif} onChange={() => setEmailNotif((value) => !value)} />}
-          />
-          <SettingRow
             icon={<LuMoon />}
             title="Dark Mode"
             desc="Switch to dark theme"
             action={<Toggle checked={isDark} onChange={() => toggleTheme()} />}
+          />
+          <SettingRow
+            icon={<LuVolume2 />}
+            title="Notification Sounds"
+            desc="Play sounds for new messages and notifications"
+            action={<Toggle checked={!muted} onChange={() => setMuted(toggleMute())} />}
           />
         </div>
       </section>

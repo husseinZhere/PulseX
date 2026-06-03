@@ -1,6 +1,15 @@
-import { HiOutlineClock, HiOutlinePlus } from 'react-icons/hi2';
+import { HiOutlineClock, HiOutlinePlus, HiOutlineTrash } from 'react-icons/hi2';
 
-const TodaySlotsPanel = ({ selectedDateLabel, slots, draftSlot, onDraftChange, onAddSlot }) => {
+const to12h = (t) => {
+  if (!t) return t;
+  const [hStr, mStr = '00'] = t.split(':');
+  const h = parseInt(hStr, 10);
+  const period = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  return `${h12}:${mStr} ${period}`;
+};
+
+const TodaySlotsPanel = ({ selectedDateLabel, slots, draftSlot, onDraftChange, onAddSlot, onDeleteSlot }) => {
   return (
     <aside
       className="relative overflow-hidden bg-white dark:bg-[#0E172A] border border-[#E6ECF5] dark:border-[#29354A] rounded-[22px] p-4 sm:p-[18px] h-fit xl:sticky xl:top-6 shadow-[0_12px_30px_rgba(2,6,23,0.05)] dark:shadow-[0_14px_36px_rgba(2,6,23,0.4)]"
@@ -17,17 +26,33 @@ const TodaySlotsPanel = ({ selectedDateLabel, slots, draftSlot, onDraftChange, o
         {slots.length === 0 ? (
           <p className="text-[12px] text-[#9CA3AF] text-center py-3">No slots for this day.</p>
         ) : (
-          slots.map((slot) => (
-            <div
-              key={slot}
-              className="w-full h-9 px-3 rounded-full bg-[#F3F7FF] dark:bg-[#13213A] border border-[#D9E3F2] dark:border-[#30405D] text-[#1E293B] dark:text-[#E2E8F0] text-[13px] font-medium flex items-center gap-2"
-            >
-              <span className="w-4 h-4 rounded-full border border-[#C9D8F0] dark:border-[#44557A] flex items-center justify-center shrink-0">
-                <HiOutlineClock className="text-brand-main dark:text-[#60A5FA] text-[10px]" />
-              </span>
-              {slot}
-            </div>
-          ))
+          slots.map((slot) => {
+            // Slots may be plain time strings (legacy) or { id, time } objects.
+            const time = typeof slot === 'string' ? slot : slot.time;
+            const id = typeof slot === 'string' ? null : slot.id;
+            return (
+              <div
+                key={id ?? time}
+                className="group w-full h-9 px-3 rounded-full bg-[#F3F7FF] dark:bg-[#13213A] border border-[#D9E3F2] dark:border-[#30405D] text-[#1E293B] dark:text-[#E2E8F0] text-[13px] font-medium flex items-center gap-2"
+              >
+                <span className="w-4 h-4 rounded-full border border-[#C9D8F0] dark:border-[#44557A] flex items-center justify-center shrink-0">
+                  <HiOutlineClock className="text-brand-main dark:text-[#60A5FA] text-[10px]" />
+                </span>
+                <span className="flex-1">{to12h(time)}</span>
+                {id != null && onDeleteSlot && (
+                  <button
+                    type="button"
+                    onClick={() => onDeleteSlot(id)}
+                    title="Remove slot"
+                    aria-label={`Remove ${to12h(time)} slot`}
+                    className="shrink-0 text-[#9CA3AF] hover:text-red-500 transition-colors cursor-pointer p-1 rounded-full hover:bg-red-50 dark:hover:bg-red-500/10"
+                  >
+                    <HiOutlineTrash className="text-[14px]" />
+                  </button>
+                )}
+              </div>
+            );
+          })
         )}
       </section>
 

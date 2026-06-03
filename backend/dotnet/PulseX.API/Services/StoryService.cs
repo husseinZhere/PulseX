@@ -104,13 +104,15 @@ namespace PulseX.API.Services
             var related = await _storyRepository.GetRelatedAsync(storyId, tags);
 
             // Top-level comments with their replies for inline preview (first 3)
-            var topLevel = await _commentRepository.GetTopLevelWithRepliesAsync(storyId);
-            var previewComments = topLevel.Take(3).Select(c => MapCommentToDto(c)).ToList();
+            var topLevel = (await _commentRepository.GetTopLevelWithRepliesAsync(storyId)).ToList();
+            var avatarMap = await BuildAvatarMapAsync(topLevel);
+            var previewComments = topLevel.Take(3).Select(c => MapCommentToDto(c, null, avatarMap)).ToList();
 
             return new StoryDetailDto
             {
                 Id                   = story.Id,
                 PatientId            = story.PatientId,
+                PatientUserId        = story.Patient?.UserId ?? 0,
                 PatientName          = story.Patient?.User?.FullName ?? "Unknown",
                 PatientAvatar        = story.Patient?.User?.ProfilePicture,
                 Title                = story.Title,
@@ -143,14 +145,47 @@ namespace PulseX.API.Services
 
             // Single query: which comment IDs have a Pending report on this story?
             var flaggedIds = await _reportRepository.GetFlaggedCommentIdsForStoryAsync(storyId);
+            var avatarMap = await BuildAvatarMapAsync(topLevel);
 
             return new StoryCommentsPageDto
             {
                 StoryId       = storyId,
                 StoryTitle    = story.Title,
                 TotalComments = totalCount,
-                Comments      = topLevel.Select(c => MapCommentToDto(c, flaggedIds)).ToList()
+                Comments      = topLevel.Select(c => MapCommentToDto(c, flaggedIds, avatarMap)).ToList()
             };
+        }
+
+        // ?? Resolve current avatar (live) for each commenter UserId ?????????
+        // Old comments may have CommenterAvatar = null because at the time
+        // of creation patient avatars were not persisted. This pulls the
+        // current ProfilePicture from User (patients) or Doctor (doctors).
+        private async Task<Dictionary<int, string?>> BuildAvatarMapAsync(IEnumerable<StoryComment> comments)
+        {
+            var userIds = new HashSet<int>();
+            foreach (var c in comments)
+            {
+                userIds.Add(c.UserId);
+                if (c.Replies != null)
+                    foreach (var r in c.Replies) userIds.Add(r.UserId);
+            }
+
+            var map = new Dictionary<int, string?>();
+            foreach (var uid in userIds)
+            {
+                try
+                {
+                    var user = await _userRepository.GetByIdAsync(uid);
+                    if (user == null) continue;
+
+                    if (user.Role == UserRole.Doctor)
+                        map[uid] = user.Doctor?.ProfilePicture ?? user.ProfilePicture;
+                    else
+                        map[uid] = user.ProfilePicture;
+                }
+                catch { /* skip */ }
+            }
+            return map;
         }
 
         // ?? Admin: All Comments � identical but always includes flag data ??
@@ -186,12 +221,21 @@ namespace PulseX.API.Services
 
             if (story.Patient?.UserId != userId)
             {
-                var (actorName, _) = await ResolveCommenter(userId, role);
-                await _patientNotificationService.CreateStoryInteractionAsync(
-                    story.PatientId,
-                    "New Like on Your Story",
-                    $"{actorName} liked your story \"{story.Title}\".",
-                    story.Id);
+                try
+                {
+                    var (actorName, actorAvatar) = await ResolveCommenter(userId, role);
+                    await _patientNotificationService.CreateStoryInteractionAsync(
+                        story.PatientId,
+                        "New Like on Your Story",
+                        $"{actorName} liked your story \"{story.Title}\".",
+                        story.Id,
+                        actorName,
+                        actorAvatar);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to create like notification for Story {StoryId}", storyId);
+                }
             }
 
             return story.LikesCount;
@@ -235,11 +279,20 @@ namespace PulseX.API.Services
             await _commentRepository.AddAsync(comment);
             if (story.Patient?.UserId != userId)
             {
-                await _patientNotificationService.CreateStoryInteractionAsync(
-                    story.PatientId,
-                    "New Comment on Your Story",
-                    $"{commenterName} commented on your story \"{story.Title}\".",
-                    story.Id);
+                try
+                {
+                    await _patientNotificationService.CreateStoryInteractionAsync(
+                        story.PatientId,
+                        "New Comment on Your Story",
+                        $"{commenterName} commented on your story \"{story.Title}\".",
+                        story.Id,
+                        commenterName,
+                        commenterAvatar);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to create comment notification for Story {StoryId}", storyId);
+                }
             }
 
             _logger.LogInformation("Comment added to Story {StoryId} by User {UserId}", storyId, userId);
@@ -279,15 +332,53 @@ namespace PulseX.API.Services
             await _commentRepository.AddAsync(reply);
             if (story.Patient?.UserId != userId)
             {
-                await _patientNotificationService.CreateStoryInteractionAsync(
-                    story.PatientId,
-                    "New Reply on Your Story",
-                    $"{commenterName} replied in your story \"{story.Title}\".",
-                    story.Id);
+                try
+                {
+                    await _patientNotificationService.CreateStoryInteractionAsync(
+                        story.PatientId,
+                        "New Reply on Your Story",
+                        $"{commenterName} replied in your story \"{story.Title}\".",
+                        story.Id,
+                        commenterName,
+                        commenterAvatar);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to create reply notification for Story {StoryId}", storyId);
+                }
             }
 
             _logger.LogInformation("Reply added to Comment {CommentId} by User {UserId}", commentId, userId);
             return MapCommentToDto(reply);
+        }
+
+        // ?? Edit a comment (owner only) ??????????????????????????????????
+        public async Task<StoryCommentDto> UpdateCommentAsync(int commentId, int userId, string content)
+        {
+            if (string.IsNullOrWhiteSpace(content))
+                throw new Exception("Comment content cannot be empty");
+
+            var comment = await _commentRepository.GetByIdAsync(commentId)
+                ?? throw new Exception("Comment not found");
+
+            if (comment.UserId != userId)
+                throw new Exception("Unauthorized: you can only edit your own comments");
+
+            comment.Content = content.Trim();
+            await _commentRepository.UpdateAsync(comment);
+            return MapCommentToDto(comment);
+        }
+
+        // ?? Delete a comment (owner or admin) ??????????????????????????????
+        public async Task DeleteCommentAsync(int commentId, int userId, bool isAdmin)
+        {
+            var comment = await _commentRepository.GetByIdAsync(commentId)
+                ?? throw new Exception("Comment not found");
+
+            if (!isAdmin && comment.UserId != userId)
+                throw new Exception("Unauthorized: you can only delete your own comments");
+
+            await _commentRepository.DeleteAsync(commentId);
         }
 
         // ?? Like a comment ????????????????????????????????????????????????
@@ -299,6 +390,36 @@ namespace PulseX.API.Services
             comment.LikesCount++;
             await _commentRepository.UpdateAsync(comment);
             return comment.LikesCount;
+        }
+
+        // ?? Patient: edit their own story ?????????????????????????????????
+        public async Task<StoryDto> UpdateOwnStoryAsync(int storyId, int userId, CreateStoryDto dto)
+        {
+            var patient = await _patientRepository.GetByUserIdAsync(userId)
+                ?? throw new Exception("Patient not found");
+
+            var story = await _storyRepository.GetByIdAsync(storyId)
+                ?? throw new Exception("Story not found");
+
+            if (story.PatientId != patient.Id)
+                throw new Exception("Unauthorized: this story does not belong to you");
+
+            story.Title   = dto.Title;
+            story.Content = dto.Content;
+            story.Tags    = dto.Tags;
+            // Only replace the cover when a new one was uploaded; keep existing otherwise.
+            if (!string.IsNullOrEmpty(dto.ImageUrl))
+                story.ImageUrl = dto.ImageUrl;
+
+            await _storyRepository.UpdateAsync(story);
+            await _activityLogRepository.AddAsync(new ActivityLog
+            {
+                UserId = userId, Action = "Edit Own Story",
+                EntityType = "Story", EntityId = story.Id,
+                Details = $"Story '{story.Title}' edited by owner"
+            });
+
+            return MapToDto((await _storyRepository.GetByIdAsync(story.Id))!);
         }
 
         // ?? Patient: delete their own story ???????????????????????????????
@@ -368,7 +489,7 @@ namespace PulseX.API.Services
             {
                 var patient = await _patientRepository.GetByUserIdAsync(userId)
                     ?? throw new Exception("Patient not found");
-                return (patient.User.FullName, null);
+                return (patient.User.FullName, patient.User?.ProfilePicture);
             }
             if (role == UserRole.Doctor)
             {
@@ -385,6 +506,7 @@ namespace PulseX.API.Services
         {
             Id                   = s.Id,
             PatientId            = s.PatientId,
+            PatientUserId        = s.Patient?.UserId ?? 0,
             PatientName          = s.Patient?.User?.FullName ?? "Unknown",
             PatientAvatar        = s.Patient?.User?.ProfilePicture,
             Title                = s.Title,
@@ -404,42 +526,51 @@ namespace PulseX.API.Services
         };
 
         private static StoryCommentDto MapCommentToDto(
-            StoryComment c, HashSet<int>? flaggedIds = null) => new()
+            StoryComment c, HashSet<int>? flaggedIds = null,
+            Dictionary<int, string?>? avatarMap = null)
         {
-            Id              = c.Id,
-            StoryId         = c.StoryId,
-            ParentCommentId = c.ParentCommentId,
-            UserId          = c.UserId,
-            CommenterName   = c.CommenterName,
-            CommenterRole   = c.CommenterRole,
-            CommenterAvatar = c.CommenterAvatar,
-            Content         = c.Content,
-            LikesCount      = c.LikesCount,
-            RepliesCount    = c.Replies?.Count ?? 0,
-            CreatedAt       = c.CreatedAt,
-            TimeAgo         = BuildTimeAgo(c.CreatedAt),
-            IsFlagged       = flaggedIds?.Contains(c.Id) ?? false,
-            Replies         = c.Replies?
-                .OrderBy(r => r.CreatedAt)
-                .Select(r => new StoryCommentDto
-                {
-                    Id              = r.Id,
-                    StoryId         = r.StoryId,
-                    ParentCommentId = r.ParentCommentId,
-                    UserId          = r.UserId,
-                    CommenterName   = r.CommenterName,
-                    CommenterRole   = r.CommenterRole,
-                    CommenterAvatar = r.CommenterAvatar,
-                    Content         = r.Content,
-                    LikesCount      = r.LikesCount,
-                    RepliesCount    = 0,
-                    CreatedAt       = r.CreatedAt,
-                    TimeAgo         = BuildTimeAgo(r.CreatedAt),
-                    IsFlagged       = flaggedIds?.Contains(r.Id) ?? false,
-                    Replies         = new()
-                })
-                .ToList() ?? new()
-        };
+            string? ResolveAvatar(int userId, string? stored)
+                => avatarMap != null && avatarMap.TryGetValue(userId, out var live) && !string.IsNullOrWhiteSpace(live)
+                    ? live
+                    : stored;
+
+            return new StoryCommentDto
+            {
+                Id              = c.Id,
+                StoryId         = c.StoryId,
+                ParentCommentId = c.ParentCommentId,
+                UserId          = c.UserId,
+                CommenterName   = c.CommenterName,
+                CommenterRole   = c.CommenterRole,
+                CommenterAvatar = ResolveAvatar(c.UserId, c.CommenterAvatar),
+                Content         = c.Content,
+                LikesCount      = c.LikesCount,
+                RepliesCount    = c.Replies?.Count ?? 0,
+                CreatedAt       = c.CreatedAt,
+                TimeAgo         = BuildTimeAgo(c.CreatedAt),
+                IsFlagged       = flaggedIds?.Contains(c.Id) ?? false,
+                Replies         = c.Replies?
+                    .OrderBy(r => r.CreatedAt)
+                    .Select(r => new StoryCommentDto
+                    {
+                        Id              = r.Id,
+                        StoryId         = r.StoryId,
+                        ParentCommentId = r.ParentCommentId,
+                        UserId          = r.UserId,
+                        CommenterName   = r.CommenterName,
+                        CommenterRole   = r.CommenterRole,
+                        CommenterAvatar = ResolveAvatar(r.UserId, r.CommenterAvatar),
+                        Content         = r.Content,
+                        LikesCount      = r.LikesCount,
+                        RepliesCount    = 0,
+                        CreatedAt       = r.CreatedAt,
+                        TimeAgo         = BuildTimeAgo(r.CreatedAt),
+                        IsFlagged       = flaggedIds?.Contains(r.Id) ?? false,
+                        Replies         = new()
+                    })
+                    .ToList() ?? new()
+            };
+        }
 
         private static List<string> ParseTags(string? tags) =>
             string.IsNullOrWhiteSpace(tags)

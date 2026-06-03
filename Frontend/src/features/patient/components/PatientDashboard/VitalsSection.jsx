@@ -1,5 +1,6 @@
+import { useNavigate } from 'react-router-dom';
 import { FaHeartPulse } from 'react-icons/fa6';
-import { LuShieldPlus } from 'react-icons/lu';
+import { LuShieldPlus, LuCircleAlert, LuArrowRight } from 'react-icons/lu';
 import StatCard from './StatCard';
 
 const bloodPressureIcon = (
@@ -35,14 +36,42 @@ const displayValue = (value, fallback = '--') => {
 };
 
 const VitalsSection = ({ vitals }) => {
+  const navigate = useNavigate();
   const heartRateValue = displayValue(vitals?.heartRate?.value);
   const bloodPressureValue = vitals?.bloodPressure?.display || '--/--';
   const bloodSugarValue = displayValue(vitals?.bloodSugar?.value);
   const bloodCountValue = displayValue(vitals?.bloodCount?.value);
   const cholesterolValue = displayValue(vitals?.cholesterol?.value);
 
+  // When every vital is still empty, the patient hasn't entered their health
+  // data yet — point them to the Update Health Data page so they know where to go.
+  const hasAnyVital =
+    bloodPressureValue !== '--/--' ||
+    [heartRateValue, bloodSugarValue, bloodCountValue, cholesterolValue].some((v) => v !== '--');
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
+    <div className="flex flex-col gap-4 md:gap-6">
+      {!hasAnyVital && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-4 py-3.5">
+          <div className="flex items-start sm:items-center gap-3">
+            <LuCircleAlert className="text-amber-500 dark:text-amber-400 text-[22px] shrink-0 mt-0.5 sm:mt-0" />
+            <div>
+              <p className="text-[14px] font-bold text-amber-800 dark:text-amber-300">No health data yet</p>
+              <p className="text-[13px] text-amber-700/90 dark:text-amber-200/80">
+                Add your vitals so we can track your heart health and personalize your dashboard.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate('/patient/update-health')}
+            className="shrink-0 inline-flex items-center justify-center gap-1.5 rounded-full bg-amber-500 hover:bg-amber-600 text-white text-[13px] font-bold px-5 py-2.5 transition-colors cursor-pointer"
+          >
+            Update Health Data <LuArrowRight className="text-[15px]" />
+          </button>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
       <StatCard
         label="Heart Rate"
         value={heartRateValue}
@@ -78,6 +107,7 @@ const VitalsSection = ({ vitals }) => {
         status={vitals?.bloodCount?.status || 'No Data'}
         icon={<FaHeartPulse size={24} />}
       />
+      </div>
     </div>
   );
 };

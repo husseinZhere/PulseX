@@ -13,6 +13,19 @@ export const createStory = (payload, coverImage) => {
     .then((r) => r.data);
 };
 
+export const updateMyStory = (storyId, payload, coverImage) => {
+  const form = new FormData();
+  Object.entries(payload).forEach(([k, v]) => {
+    if (v != null && v !== '') form.append(k, v);
+  });
+  if (coverImage) form.append('coverImage', coverImage);
+  return api
+    .put(`/api/Story/${storyId}/mine`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    .then((r) => r.data);
+};
+
 export const getPublishedStories = (params = {}) =>
   api.get('/api/Story/published', { params }).then((r) => r.data);
 
@@ -33,6 +46,12 @@ export const replyToComment = (storyId, commentId, payload) =>
 
 export const likeComment = (storyId, commentId) =>
   api.post(`/api/Story/${storyId}/comments/${commentId}/like`).then((r) => r.data);
+
+export const updateComment = (storyId, commentId, payload) =>
+  api.put(`/api/Story/${storyId}/comments/${commentId}`, payload).then((r) => r.data);
+
+export const deleteComment = (storyId, commentId) =>
+  api.delete(`/api/Story/${storyId}/comments/${commentId}`).then((r) => r.data);
 
 export const likeStory = (storyId) =>
   api.post(`/api/Story/${storyId}/like`).then((r) => r.data);

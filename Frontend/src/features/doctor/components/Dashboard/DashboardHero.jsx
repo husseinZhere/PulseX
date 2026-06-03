@@ -38,7 +38,17 @@ const StatCard = ({ label, value, delta, trend }) => {
   );
 };
 
-const DashboardHero = ({ stats, doctorName = 'Doctor', doctorPhoto = '/image/doctor-hero.jpg' }) => {
+const DoctorInitials = ({ name }) => {
+  const clean = String(name || 'Doctor').replace(/^dr\.?\s/i, '').trim();
+  const initials = clean.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join('') || 'D';
+  return (
+    <div className="w-full h-full rounded-full flex items-center justify-center bg-gradient-to-br from-[#333CF5] to-[#7C3AED] text-white text-[44px] font-bold">
+      {initials}
+    </div>
+  );
+};
+
+const DashboardHero = ({ stats, doctorName = 'Doctor', doctorPhoto = '' }) => {
   const displayName = doctorName === 'Doctor' || /^dr\.?\s/i.test(doctorName)
     ? doctorName
     : `Dr. ${doctorName}`;
@@ -73,11 +83,15 @@ const DashboardHero = ({ stats, doctorName = 'Doctor', doctorPhoto = '/image/doc
         {/* Premium Profile Avatar Component */}
         <div className="hidden sm:block relative shrink-0 transform transition-transform hover:scale-105 duration-500 ease-out cursor-pointer">
           <div className="relative w-[160px] h-[160px] lg:w-[190px] lg:h-[190px] rounded-full p-2.5 bg-white dark:bg-[#111827]/40 backdrop-blur-xl shadow-[0_16px_40px_rgba(0,0,0,0.1)] border border-[#E5E7EB] dark:border-gray-700">
-            <img
-              src={doctorPhoto || '/image/doctor-hero.jpg'}
-              alt="Profile"
-              className="w-full h-full object-cover rounded-full shadow-inner dark:shadow-none"
-            />
+            {doctorPhoto ? (
+              <img
+                src={doctorPhoto}
+                alt="Profile"
+                className="w-full h-full object-cover rounded-full shadow-inner dark:shadow-none"
+              />
+            ) : (
+              <DoctorInitials name={doctorName} />
+            )}
           </div>
           {/* Online Status Badge */}
           <div className="absolute bottom-2 right-2 md:bottom-3 md:right-3 bg-white dark:bg-[#111827] px-3 py-1.5 rounded-full shadow-lg dark:shadow-none border border-gray-100 dark:border-gray-800 flex items-center gap-2 z-10 animate-fade-in-up">

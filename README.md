@@ -1,359 +1,162 @@
-# PulseX Backend API
+# PulseX — AI-Powered Cardiovascular Health Platform
 
-A complete ASP.NET Core Web API (.NET 8) backend system for the PulseX graduation project - a comprehensive health management platform.
+PulseX is a graduation-project medical platform that connects patients with cardiologists, offering AI-powered heart-risk assessment, real-time consultations, e-prescriptions, and remote health monitoring.
 
-## 📋 Project Overview
+> **Live demo:** https://pulsex-ten.vercel.app
 
-PulseX is a health management system that connects patients with doctors, manages appointments, medical records, health data, and provides AI-powered chatbot assistance.
+---
 
-## 🏗️ Architecture
+## 🧱 Architecture
 
-### 3-Layer Architecture
-- **PulseX.API**: Controllers and API endpoints
-- **PulseX.Core**: Domain models, DTOs, interfaces, and enums
-- **PulseX.Data**: Database context, repositories, and data access
+PulseX is built from three independent services that run together:
 
-### Design Patterns
-- **Repository Pattern**: Data access abstraction
-- **Service Layer Pattern**: Business logic separation
-- **Dependency Injection**: IoC container for loose coupling
-- **AutoMapper**: Object-to-object mapping
+| Service | Tech | Local Port |
+|---|---|---|
+| **Frontend** | React 18 + Vite + Tailwind CSS | 5173 |
+| **Backend API** | ASP.NET Core 8 (C#) | 5245 |
+| **AI Service** | Python FastAPI + PyTorch | 8001 |
+
+```
+┌──────────────┐      ┌──────────────────┐      ┌─────────────────┐
+│   Frontend   │ ───► │   Backend API    │ ───► │   AI Service    │
+│  React/Vite  │      │  ASP.NET Core 8  │      │  FastAPI/PyTorch│
+└──────────────┘      └──────────────────┘      └─────────────────┘
+       │                       │                         │
+   (Vercel)              (SQL Server)            (DenseNet121 + ML)
+```
+
+---
+
+## ✨ Features
+
+### 👤 Patient
+- Self-registration with email OTP verification
+- Personal dashboard with vitals, weekly trends, and AI risk gauge
+- Browse and filter doctors (specialty, rating, price)
+- Book appointments with a real-time slot calendar (booked slots flagged)
+- Cash or credit-card payment flow
+- Real-time chat & video calls with doctors
+- **AI Chest X-Ray Analysis** (DenseNet121 cardiomegaly classifier)
+- **Heart Risk Assessment** (Framingham ML model)
+- AI health chatbot (EKO)
+- E-prescriptions, medical records, QR code for emergency record sharing
+- Write & share community health stories
+
+### 🩺 Doctor
+- Dashboard with today's appointments, critical patients, and weekly charts
+- Weekly recurring + single-slot schedule management
+- Patient list, profiles, vitals, and medical records
+- E-prescription builder (medications, clinical notes, lab orders, PDF export)
+- Real-time messaging and video calls
+- Community stories feed
+
+### 🛡️ Admin
+- Doctor & patient management (CRUD + Excel export)
+- Story moderation
+- Activity logs and reports
+- Profile & settings
+
+---
 
 ## 🛠️ Tech Stack
 
-- **.NET 8**: Latest LTS version
-- **ASP.NET Core Web API**: RESTful API framework
-- **Entity Framework Core 8.0**: ORM for database operations
-- **SQL Server**: Relational database
-- **JWT Authentication**: Secure token-based authentication
-- **AutoMapper 12.0**: Object mapping
-- **Swagger/OpenAPI**: API documentation
+**Frontend:** React 18, Vite, Tailwind CSS, Framer Motion, React Router v6, Axios, `@microsoft/signalr`, React Hook Form + Yup.
 
-## 📦 Features
+**Backend:** ASP.NET Core 8, Entity Framework Core + SQL Server, AutoMapper, SignalR (real-time chat & WebRTC signaling), JWT Bearer auth. Three-project clean architecture: `PulseX.API` / `PulseX.Core` / `PulseX.Data`.
 
-### 1. Authentication & Authorization
-- **Patient Self-Registration**: Patients can register themselves
-- **Admin-Only User Creation**: Doctors and admins created by administrators
-- **JWT Token Authentication**: Secure token-based authentication with roles
-- **Role-Based Authorization**: Patient, Doctor, and Admin roles
+**AI Service:** Python FastAPI, PyTorch (DenseNet121 chest X-ray, AUC ≈ 0.86), scikit-learn (Framingham 10-year CHD risk), custom medical chatbot.
 
-### 2. User Management
-- **View Profile**: Users can view their profile information
-- **Update Profile**: Users can update their personal information
-- **Change Password**: Secure password change functionality
-
-### 3. Doctor Management
-- **List Doctors**: View all available doctors
-- **Doctor Profiles**: Detailed doctor information including:
-  - Specialization
-  - Consultation price
-  - Clinic location
-  - Years of experience
-  - Biography
-
-### 4. Appointments
-- **Book Appointments**: Patients can book appointments with doctors
-- **Appointment Status**: Scheduled, Completed, Cancelled
-- **Payment Methods**: Cash, Online
-- **Payment Status**: Pending, Paid, Failed
-- **View Appointments**: Patients and doctors can view their appointments
-
-### 5. Messaging/Chat
-- **Doctor-Patient Chat**: Real-time messaging between doctors and patients
-- **Appointment-Linked Messages**: Messages are associated with specific appointments
-- **Message History**: View conversation history
-
-### 6. Medical Records
-- **File Upload**: Patients can upload medical records (PDF, images, etc.)
-- **Doctor Access**: Doctors can view patient records for their appointments
-- **File Download**: Secure file download functionality
-
-### 7. Health Data
-- **Store Health Readings**: Patients can log health metrics:
-  - Blood Pressure
-  - Heart Rate
-  - Temperature
-  - Blood Sugar
-  - Weight
-  - And more
-- **View History**: Track health data over time
-
-### 8. AI Chatbot
-- **Stateless Chatbot**: AI assistant for health queries
-- **Health Data Integration**: Uses patient's health data for personalized responses
-- **No Conversation Storage**: Privacy-focused stateless design
-
-### 9. Stories
-- **Patient Stories**: Patients can create and share their health journey stories
-- **Admin Moderation**: Admins can publish, hide, or delete stories
-- **Public Stories**: View published stories
-
-### 10. Admin Panel
-- **User Management**: Activate/deactivate user accounts
-- **Story Management**: Moderate patient stories
-- **Activity Logs**: View system activity and user actions
-
-## 📚 Documentation
-
-Comprehensive documentation is available in the [`docs/`](./docs/) directory:
-
-- **[📚 Documentation Hub](./docs/README.md)** - Complete documentation index
-- **[🚀 Quick Start Guide](./docs/guides/QUICK_START_GUIDE.md)** - Get started quickly
-- **[🔌 API Documentation](./docs/api/API_DOCUMENTATION.md)** - Complete API reference
-- **[📊 Project Summary](./docs/summaries/PROJECT_SUMMARY.md)** - Project overview
-- **[✨ Features Documentation](./docs/features/)** - Feature-specific guides
-- **[🌍 Arabic Documentation](./docs/translations/)** - التوثيق بالعربية
-
-For more documentation, see the [docs directory](./docs/).
+---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-
+- Node.js 18+
 - .NET 8 SDK
-- SQL Server (LocalDB, Express, or full version)
-- Visual Studio 2022 or VS Code with C# extension
+- Python 3.10+
+- SQL Server (LocalDB / Express / full)
 
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/husseinZhere/Backend-Services.git
-   cd Backend-Services/Backend
-   ```
-
-2. **Update Database Connection String**
-   
-   Edit `PulseX.API/appsettings.json`:
-   ```json
-   "ConnectionStrings": {
-     "DefaultConnection": "Server=YOUR_SERVER;Database=PulseXDb;Trusted_Connection=True;TrustServerCertificate=True;"
-   }
-   ```
-
-3. **Apply Database Migrations**
-   ```bash
-   cd PulseX.Data
-   dotnet ef database update --startup-project ../PulseX.API/PulseX.API.csproj
-   ```
-
-4. **Run the Application**
-   ```bash
-   cd ../PulseX.API
-   dotnet run
-   ```
-
-5. **Access the API**
-   - API: `https://localhost:7xxx` or `http://localhost:5xxx`
-   - Swagger UI: `https://localhost:7xxx/swagger` or `http://localhost:5xxx/swagger`
-
-## 📝 API Endpoints
-
-### Authentication
-```
-POST   /api/auth/register/patient      - Patient registration
-POST   /api/auth/create/doctor         - Create doctor (Admin only)
-POST   /api/auth/create/admin          - Create admin (Admin only)
-POST   /api/auth/login                 - User login
+### 1. Backend API
+```bash
+cd backend/dotnet/PulseX.API
+# Copy the template and fill in your own values
+cp appsettings.example.json appsettings.json
+dotnet ef database update          # apply migrations
+dotnet run
 ```
 
-### User
-```
-GET    /api/user/profile               - Get current user profile
-PUT    /api/user/profile               - Update profile
-POST   /api/user/change-password       - Change password
-```
-
-### Doctor
-```
-GET    /api/doctor                     - List all doctors
-GET    /api/doctor/{id}                - Get doctor profile
+### 2. Frontend
+```bash
+cd Frontend
+cp .env.example .env               # set VITE_API_BASE_URL + VITE_AI_BASE_URL
+npm install
+npm run dev
 ```
 
-### Appointments
+### 3. AI Service
+```bash
+cd backend/ai-service
+python -m venv .venv
+.venv\Scripts\activate             # (Windows)  |  source .venv/bin/activate (Unix)
+pip install -r requirements.txt
+python main.py
 ```
-POST   /api/appointment                - Book appointment (Patient only)
-GET    /api/appointment/my-appointments - Get user's appointments
-PUT    /api/appointment/{id}/status    - Update appointment status
-```
-
-### Messages
-```
-POST   /api/message                    - Send message
-GET    /api/message/appointment/{id}   - Get appointment messages
-```
-
-### Medical Records
-```
-POST   /api/medicalrecord/upload       - Upload medical record (Patient only)
-GET    /api/medicalrecord/my-records   - Get my records (Patient only)
-GET    /api/medicalrecord/patient/{id} - Get patient records (Doctor only)
-GET    /api/medicalrecord/{id}/download - Download record
-```
-
-### Health Data
-```
-POST   /api/healthdata                 - Add health data (Patient only)
-GET    /api/healthdata                 - Get my health data (Patient only)
-```
-
-### Chatbot
-```
-POST   /api/chatbot                    - Chat with AI assistant (Patient only)
-```
-
-### Stories
-```
-POST   /api/story                      - Create story (Patient only)
-GET    /api/story/published            - Get published stories (Public)
-GET    /api/story/my-stories           - Get my stories (Patient only)
-GET    /api/story/all                  - Get all stories (Admin only)
-PUT    /api/story/{id}/publish         - Publish story (Admin only)
-PUT    /api/story/{id}/hide            - Hide story (Admin only)
-DELETE /api/story/{id}                 - Delete story (Admin only)
-```
-
-### Admin
-```
-GET    /api/admin/users                - Get all users
-PUT    /api/admin/users/{id}/status    - Update user status
-GET    /api/admin/activity-logs        - Get all activity logs
-GET    /api/admin/activity-logs/user/{id} - Get user activity logs
-```
-
-## 🔐 Authentication
-
-The API uses JWT (JSON Web Tokens) for authentication. After successful login, you'll receive a token that must be included in subsequent requests:
-
-```
-Authorization: Bearer YOUR_JWT_TOKEN
-```
-
-### Roles
-- **Patient**: Can manage their profile, book appointments, upload records, use chatbot, create stories
-- **Doctor**: Can view appointments, chat with patients, view patient medical records
-- **Admin**: Full system access including user management and story moderation
-
-## 🗄️ Database Schema
-
-### Main Entities
-- **Users**: Base user information with role
-- **Patients**: Patient-specific information
-- **Doctors**: Doctor-specific information
-- **Appointments**: Appointment bookings
-- **Messages**: Chat messages
-- **MedicalRecords**: Uploaded medical files
-- **HealthData**: Patient health readings
-- **Stories**: Patient stories
-- **ActivityLogs**: System activity tracking
-
-## 📂 Project Structure
-
-```
-Backend/
-├── PulseX.API/                    # Web API Layer
-│   ├── Controllers/               # API Controllers
-│   ├── Services/                  # Business Logic Services
-│   ├── Helpers/                   # Helper classes (JWT, Password, Mapping)
-│   ├── Uploads/                   # File upload directory
-│   ├── Program.cs                 # Application entry point
-│   └── appsettings.json          # Configuration
-│
-├── PulseX.Core/                   # Core Layer
-│   ├── Models/                    # Domain entities
-│   ├── DTOs/                      # Data Transfer Objects
-│   ├── Enums/                     # Enumerations
-│   └── Interfaces/                # Repository interfaces
-│
-└── PulseX.Data/                   # Data Layer
-    ├── Repositories/              # Repository implementations
-    ├── Migrations/                # EF Core migrations
-    └── ApplicationDbContext.cs    # Database context
-```
-
-## 🧪 Testing
-
-### Using Swagger UI
-1. Run the application
-2. Navigate to `/swagger`
-3. Test endpoints interactively
-
-### Using Postman
-1. Import the API endpoints
-2. Set up authentication with JWT token
-3. Test all endpoints
-
-## 🔧 Configuration
-
-### JWT Settings (appsettings.json)
-```json
-"Jwt": {
-  "Key": "YOUR_SECRET_KEY_HERE",
-  "Issuer": "PulseXAPI",
-  "Audience": "PulseXClient"
-}
-```
-
-### Database Connection
-```json
-"ConnectionStrings": {
-  "DefaultConnection": "Server=localhost;Database=PulseXDb;Trusted_Connection=True;TrustServerCertificate=True;"
-}
-```
-
-## 📊 Sample Data
-
-To create an admin user for testing:
-
-1. First, register as a patient
-2. Manually update the database to change user role to Admin (Role = 3)
-3. Use that admin account to create doctors and other admins
-
-Alternatively, you can seed data in the `ApplicationDbContext`:
-
-```csharp
-protected override void OnModelCreating(ModelBuilder modelBuilder)
-{
-    base.OnModelCreating(modelBuilder);
-    
-    // Seed admin user
-    modelBuilder.Entity<User>().HasData(
-        new User
-        {
-            Id = 1,
-            Email = "admin@pulsex.com",
-            PasswordHash = PasswordHelper.HashPassword("Admin@123"),
-            FullName = "System Administrator",
-            Role = UserRole.Admin,
-            IsActive = true
-        }
-    );
-}
-```
-
-## 🛡️ Security Considerations
-
-- **Password Hashing**: Passwords are hashed using SHA256
-- **JWT Tokens**: 7-day expiration
-- **Role-Based Access**: Endpoints protected by role authorization
-- **File Upload Validation**: Validate file types and sizes
-- **Activity Logging**: Track all important user actions
-
-## 🤝 Contributing
-
-This is a graduation project. For any questions or suggestions, please contact the development team.
-
-## 📝 License
-
-This project is developed as part of a graduation project and is for educational purposes.
-
-## 👥 Team
-
-- **Backend Development**: ASP.NET Core Web API
-- **Frontend Development**: React + Vite (separate repository)
-
-
 
 ---
 
-**Built with ❤️ for PulseX Graduation Project**
+## 🔐 Configuration & Secrets
+
+**No real credentials are committed to this repository.** All secret-bearing files are templated:
+
+| File | Purpose |
+|---|---|
+| `backend/dotnet/PulseX.API/appsettings.example.json` | Template — copy to `appsettings.json` and fill in |
+| `appsettings.Production.json` | Real production secrets (git-ignored, never committed) |
+| `Frontend/.env` | API + AI base URLs |
+
+Required configuration values:
+- **ConnectionStrings:DefaultConnection** — your SQL Server connection
+- **Jwt:Key** — a random secret string (≥ 32 chars)
+- **Email** — SMTP host / username / app-password for OTP emails
+- **AiService:BaseUrl** — URL of the running AI service
+
+---
+
+## 🔑 Roles
+
+| Role | Access |
+|---|---|
+| **Patient** | Self-registers with OTP. Books appointments, uses AI tools, manages records. |
+| **Doctor** | Created by admin. Manages schedule, patients, prescriptions, consultations. |
+| **Admin** | Full platform management and moderation. |
+
+JWT-based authentication with role-based route protection on both frontend and backend.
+
+---
+
+## 🤖 AI Models
+
+| Model | Task | Metric |
+|---|---|---|
+| `cardiac_binary_model.pth` | Chest X-ray cardiomegaly classification (DenseNet121) | AUC ≈ 0.86 |
+| `recommendation_model.pkl` | Framingham 10-year CHD risk prediction | — |
+
+---
+
+## 📦 Deployment
+
+| Service | Platform |
+|---|---|
+| Frontend | Vercel |
+| Backend API | IIS / Windows hosting |
+| AI Service | Hugging Face Spaces (port 7860) |
+
+---
+
+## 📝 License
+
+Developed as a graduation project for educational purposes.
+
+---
+
+**Built with ❤️ for the PulseX Graduation Project**

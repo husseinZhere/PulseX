@@ -127,73 +127,48 @@ const Footer = () => {
         <div className="md:col-span-2">
           <h4 className="text-[18px] font-bold text-black-main-text dark:text-[#E2E8F0] mb-6 font-display">Quick Links</h4>
           <ul className="space-y-4">
-            {[
-              { label: 'Home', href: '/#home' },
-              { label: 'About', href: '/#about' },
-              { label: 'Contact Us', href: 'mailto:support@pulseX.health' },
-            ].map((item) => (
-              <li key={item.label}>
-                <a href={item.href} className="text-[16px] text-gray-text-dim2  hover:text-brand-main transition-colors font-medium">
-                  {item.label}
-                </a>
-              </li>
-            ))}
+            <li><Link to="/" className="text-[16px] text-gray-text-dim2 hover:text-brand-main transition-colors font-medium">Home</Link></li>
+            <li><Link to="/about" className="text-[16px] text-gray-text-dim2 hover:text-brand-main transition-colors font-medium">About PulseX</Link></li>
+            <li><Link to="/contact" className="text-[16px] text-gray-text-dim2 hover:text-brand-main transition-colors font-medium">Contact Us</Link></li>
+            <li><Link to="/emergency" className="text-[16px] text-gray-text-dim2 hover:text-red-500 transition-colors font-medium flex items-center gap-1.5">🚨 Cardiac Emergency</Link></li>
           </ul>
           <div className="mt-8">
-            <button className="bg-brand-main text-white px-6 py-3 rounded-full text-[14px] font-medium flex items-center gap-2 hover:bg-[#282eb5] transition-colors shadow-md dark:shadow-none group">
-              <Link to="/register" className="flex items-center gap-2"> Get Started   <FaArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" /></Link>
-
-            </button>
+            <Link to="/register" className="bg-brand-main text-white px-6 py-3 rounded-full text-[14px] font-medium inline-flex items-center gap-2 hover:bg-[#282eb5] transition-colors shadow-md dark:shadow-none group">
+              Get Started <FaArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </Link>
           </div>
         </div>
 
         <div className="md:col-span-2">
           <h4 className="text-[18px] font-bold text-black-main-text dark:text-[#E2E8F0] mb-6 font-display">Support</h4>
           <ul className="space-y-4">
-            {['Documentation', 'Community'].map((item) => (
-              <li key={item}>
-                <span className="inline-flex items-center gap-2 text-[16px] text-gray-text-dim2 font-medium select-none">
-                  {item}
-                  <span className="rounded-full border border-gray-300 dark:border-gray-700 px-2 py-0.5 text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                    Soon
-                  </span>
-                </span>
-              </li>
-            ))}
+            <li><Link to="/faq" className="text-[16px] text-gray-text-dim2 hover:text-brand-main transition-colors font-medium">FAQ</Link></li>
+            <li><Link to="/privacy" className="text-[16px] text-gray-text-dim2 hover:text-brand-main transition-colors font-medium">Privacy Policy</Link></li>
+            <li><Link to="/login" className="text-[16px] text-gray-text-dim2 hover:text-brand-main transition-colors font-medium">Community</Link></li>
           </ul>
         </div>
       </div>
 
       <div className="flex flex-col max-w-7xl mx-auto px-4 md:flex-row justify-between items-end border-t border-gray-100 dark:border-gray-800 pt-8 gap-8">
         <div className="flex items-center gap-6">
-          <a href="#" className="text-black-main-text dark:text-[#E2E8F0] hover:text-brand-main transition-colors"> <RiInstagramLine alt="PulseX" className="w-6 h-6 object-contain" /></a>
-          <a href="#" className="text-black-main-text dark:text-[#E2E8F0] hover:text-brand-main transition-colors"> <FaLinkedin alt="PulseX" className="w-6 h-6 object-contain" /></a>
-          <a href="#" className="text-black-main-text dark:text-[#E2E8F0] hover:text-brand-main transition-colors"> <FaFacebookF alt="PulseX" className="w-6 h-6 object-contain" /></a>
-          <a href="#" className="text-black-main-text dark:text-[#E2E8F0] hover:text-brand-main transition-colors"> <FaXTwitter alt="PulseX" className="w-6 h-6 object-contain" /></a>
+          <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-black-main-text dark:text-[#E2E8F0] hover:text-brand-main hover:scale-110 transition-all"> <RiInstagramLine className="w-6 h-6 object-contain" /></a>
+          <a href="https://www.linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="text-black-main-text dark:text-[#E2E8F0] hover:text-brand-main hover:scale-110 transition-all"> <FaLinkedin className="w-6 h-6 object-contain" /></a>
+          <a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-black-main-text dark:text-[#E2E8F0] hover:text-brand-main hover:scale-110 transition-all"> <FaFacebookF className="w-6 h-6 object-contain" /></a>
+          <a href="https://www.x.com" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" className="text-black-main-text dark:text-[#E2E8F0] hover:text-brand-main hover:scale-110 transition-all"> <FaXTwitter className="w-6 h-6 object-contain" /></a>
         </div>
 
         <div className="flex flex-col gap-2">
           <span className="text-[16px] text-black-main-text dark:text-[#E2E8F0] font-medium">Email</span>
-          <a href="mailto:support@pulseX.health" className="text-[16px] text-gray-text-dim2  hover:text-brand-main transition-colors flex items-center gap-2">
+          <a href="mailto:pulsex.system@gmail.com" className="text-[16px] text-gray-text-dim2  hover:text-brand-main transition-colors flex items-center gap-2">
             <div className="w-4 h-4"> <HiOutlineMail className="w-4 h-4 object-contain" /></div>
-            support@pulseX.health
+            pulsex.system@gmail.com
           </a>
         </div>
       </div>
 
       <div className="mt-12 flex flex-col max-w-7xl mx-auto px-4 md:flex-row justify-between items-center text-[14px] text-gray-text-dim2 pt-8 border-t border-[#757575] dark:border-gray-700">
 
-        <p>© 2025 PulseX. All rights reserved.</p>
-        <div className="flex items-center gap-8 mt-4 md:mt-0">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-            <span>All systems operational</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
-            <span>Version 2.1.0</span>
-          </div>
-        </div>
+        <p>© 2026 PulseX. All rights reserved.</p>
       </div>
 
 

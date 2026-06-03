@@ -268,7 +268,7 @@ const UpdateHealthForm = ({ onSave }) => {
           <div className="flex justify-center mt-10">
             <button
               onClick={handleSave}
-              className="cursor-pointer bg-brand-main hover:bg-blue-700 text-white px-12 py-3 rounded-full font-bold flex items-center gap-2 transition-colors text-sm shadow-md shadow-blue-200 mt-4"
+              className="cursor-pointer bg-brand-main hover:bg-blue-700 text-white px-12 py-3 rounded-full font-bold flex items-center gap-2 transition-colors text-sm shadow-md shadow-blue-200 dark:shadow-none mt-4"
             >
               Save  Changes
             </button>

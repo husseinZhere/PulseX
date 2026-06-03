@@ -11,7 +11,7 @@ const STATIC_STORIES = [
     {
         id: 1,
         name: "Mohamed Ahmed",
-        age: "48",
+        age: "40",
         condition: "Hypertension",
         image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400",
         quote: "For a long time, my health felt like a puzzle with missing pieces. PulseX gave me a clear picture of my heart health. After 8 months of following my AI-generated plan and weekly check-ins with my doctor, my risk score dropped from 85% to 23%. I finally feel in control.",
@@ -21,7 +21,7 @@ const STATIC_STORIES = [
     {
         id: 2,
         name: "Nour El-Din",
-        age: "55",
+        age: "29",
         condition: "Arrhythmia",
         image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=400",
         quote: "I never knew my heartbeat was irregular until PulseX flagged it. The real-time ECG monitoring caught an episode before I even felt symptoms. My cardiologist was able to adjust my treatment immediately. This platform genuinely saved my life.",
@@ -41,7 +41,7 @@ const STATIC_STORIES = [
     {
         id: 4,
         name: "Khaled Mansour",
-        age: "61",
+        age: "36",
         condition: "Heart Disease",
         image: "https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&q=80&w=400",
         quote: "When I collapsed at work, the paramedics scanned my emergency QR code and instantly knew my full medical history, allergies, and current medications. The doctors say that quick access saved my life. I carry that QR code everywhere now.",
@@ -50,29 +50,26 @@ const STATIC_STORIES = [
     },
 ];
 
-// Fetch real patient photos from published stories and inject them into static slots
-const useRealPhotos = (setStories) => {
+// Fetch real patient names + avatars directly from the patients table (public endpoint).
+// Each story slot gets a different real patient — no repetition, no fake Unsplash photos.
+const useRealPatientData = (setStories) => {
     useEffect(() => {
-        api.get('/api/Story/published', { params: { page: 1, pageSize: 8 } })
+        api.get('/api/Story/patient-avatars', { params: { limit: 8 } })
             .then(r => {
-                // backend returns StoryPagedDto { stories: [...] } or plain array
-                const list = Array.isArray(r.data)
-                    ? r.data
-                    : (r.data?.stories || r.data?.Stories || r.data?.data || []);
+                const list = Array.isArray(r.data) ? r.data : [];
                 if (!list.length) return;
                 setStories(prev => prev.map((story, i) => {
-                    const src = list[i];
-                    if (!src) return story;
-                    // StoryDto field: patientAvatar (camelCase from .NET JSON)
-                    const raw = src.patientAvatar || src.PatientAvatar
-                        || src.imageUrl || src.ImageUrl
-                        || src.coverImage || src.CoverImage
-                        || '';
-                    const photoUrl = resolveFileUrl(raw);
-                    return photoUrl ? { ...story, image: photoUrl } : story;
+                    const p = list[i];
+                    if (!p) return story;
+                    const avatar = resolveFileUrl(p.avatar || '');
+                    return {
+                        ...story,
+                        ...(p.name && { name: p.name }),
+                        ...(avatar && { image: avatar }),
+                    };
                 }));
             })
-            .catch(() => {});
+            .catch(() => { });
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 };
 
@@ -94,7 +91,7 @@ const Stories = () => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [stories, setStories] = useState(STATIC_STORIES);
 
-    useRealPhotos(setStories);
+    useRealPatientData(setStories);
 
     const nextSlide = () => {
         if (currentIndex < stories.length - 1) setCurrentIndex(prev => prev + 1);
@@ -166,9 +163,9 @@ const Stories = () => {
                                     </div>
 
                                     <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start text-center sm:text-left gap-6 sm:gap-0 py-6">
-                                        <StatBlock label="Risk Reduction" value={story.risk}  color="text-[#059669]" />
-                                        <StatBlock label="Recovery Time"  value={story.time}  color="text-brand-main" />
-                                        <StatBlock label="BPM Improved"   value={story.bpm}   color="text-[#D97706]" />
+                                        <StatBlock label="Risk Reduction" value={story.risk} color="text-[#059669]" />
+                                        <StatBlock label="Recovery Time" value={story.time} color="text-brand-main" />
+                                        <StatBlock label="BPM Improved" value={story.bpm} color="text-[#D97706]" />
                                     </div>
 
                                     <div className="space-y-4">

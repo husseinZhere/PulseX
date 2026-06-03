@@ -71,7 +71,7 @@ const PatientRatingModal = ({ isOpen, onClose, onSubmit, doctor }) => {
             {/* Close */}
             <button
               aria-label="Close rating modal"
-              className="absolute top-3 right-3 sm:top-4 sm:right-4 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors"
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 flex items-center justify-center text-gray-500 dark:text-gray-300 transition-colors"
               onClick={handleClose}
             >
               <HiXMark className="text-sm sm:text-base" />
@@ -100,19 +100,19 @@ const PatientRatingModal = ({ isOpen, onClose, onSubmit, doctor }) => {
             </div>
 
             {/* Appointment info pill */}
-            <div className="flex items-center gap-2 sm:gap-3 bg-blue-50 border border-blue-100 rounded-xl sm:rounded-[14px] px-3 sm:px-4 py-2 sm:py-2.5 w-full">
+            <div className="flex items-center gap-2 sm:gap-3 bg-blue-50 dark:bg-[#1e1b4b]/40 border border-blue-100 dark:border-[#4338ca]/30 rounded-xl sm:rounded-[14px] px-3 sm:px-4 py-2 sm:py-2.5 w-full">
               <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-brand-main flex items-center justify-center shrink-0">
                 <MdOutlineSchedule className="text-white text-sm sm:text-base" />
               </div>
               <div>
-                <p className="text-[10px] sm:text-[11px] text-gray-400">Recent Appointment</p>
+                <p className="text-[10px] sm:text-[11px] text-gray-400 dark:text-gray-400">Recent Appointment</p>
                 <p className="text-[11px] sm:text-[12px] font-semibold text-black-main-text dark:text-[#E2E8F0]">{apptDate}</p>
               </div>
             </div>
 
             {/* Star rating */}
             <div className="flex flex-col items-center gap-1.5 sm:gap-2 w-full">
-              <p className="text-[11px] sm:text-[12px] font-semibold text-[#364153]">Rate your experience</p>
+              <p className="text-[11px] sm:text-[12px] font-semibold text-[#364153] dark:text-gray-300">Rate your experience</p>
               <div className="flex items-center gap-0.5 sm:gap-1">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <button
@@ -137,17 +137,17 @@ const PatientRatingModal = ({ isOpen, onClose, onSubmit, doctor }) => {
 
             {/* Feedback textarea */}
             <div className="flex flex-col gap-1 sm:gap-1.5 w-full">
-              <label className="text-[11px] sm:text-[12px] font-semibold text-[#364153]">
-                Share your feedback <span className="text-gray-400 font-normal">(Optional)</span>
+              <label className="text-[11px] sm:text-[12px] font-semibold text-[#364153] dark:text-gray-300">
+                Share your feedback <span className="text-gray-400 dark:text-gray-500 font-normal">(Optional)</span>
               </label>
               <textarea
-                className="w-full bg-[#f9fafb] border border-gray-200 dark:border-gray-700 rounded-xl px-3 sm:px-3.5 py-2 sm:py-2.5 text-[12px] sm:text-[13px] text-black-main-text dark:text-[#E2E8F0] placeholder:text-gray-400 outline-none resize-none focus:border-brand-main transition-colors"
+                className="w-full bg-[#f9fafb] dark:bg-[#0B1120] border border-gray-200 dark:border-gray-700 rounded-xl px-3 sm:px-3.5 py-2 sm:py-2.5 text-[12px] sm:text-[13px] text-black-main-text dark:text-[#E2E8F0] placeholder:text-gray-400 dark:placeholder:text-gray-600 outline-none resize-none focus:border-brand-main transition-colors"
                 rows={3}
                 placeholder={`Tell us about your experience with ${doctorName}...`}
                 value={feedback}
                 onChange={(e) => setFeedback(e.target.value)}
               />
-              <p className="text-[10px] sm:text-[11px] text-gray-400">Your feedback helps us improve our services</p>
+              <p className="text-[10px] sm:text-[11px] text-gray-400 dark:text-gray-500">Your feedback helps us improve our services</p>
             </div>
 
             {/* Submit */}
@@ -155,7 +155,7 @@ const PatientRatingModal = ({ isOpen, onClose, onSubmit, doctor }) => {
               className={`w-full rounded-xl py-2.5 sm:py-3 text-[12px] sm:text-[13px] font-bold flex items-center justify-center gap-2 transition-colors ${
                 submitted ? 'bg-green-500 text-white' :
                 rating > 0 ? 'bg-brand-main hover:bg-[#2830d4] text-white' :
-                'bg-gray-100 text-gray-400 cursor-not-allowed'
+                'bg-gray-100 dark:bg-[#1E293B] text-gray-400 dark:text-gray-600 cursor-not-allowed'
               }`}
               onClick={handleSubmit}
               disabled={!rating || submitted}

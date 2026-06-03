@@ -18,6 +18,11 @@ import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'
 
 // ─── Lazy-loaded Pages ──────────────────────────────────────────
 const Home = lazy(() => import('./features/home/pages/Home/Home'))
+const About = lazy(() => import('./features/home/pages/About/About'))
+const Contact = lazy(() => import('./features/home/pages/Contact/Contact'))
+const Emergency = lazy(() => import('./features/home/pages/Emergency/Emergency'))
+const FAQ = lazy(() => import('./features/home/pages/FAQ/FAQ'))
+const Privacy = lazy(() => import('./features/home/pages/Privacy/Privacy'))
 const Login = lazy(() => import('./features/auth/pages/Login/Login'))
 const Register = lazy(() => import('./features/auth/pages/Register/Register'))
 const ForgotPassword = lazy(() => import('./features/auth/pages/ForgotPassword/ForgotPassword'))
@@ -84,7 +89,14 @@ function App() {
     {
       path: "/",
       element: <Layout />,
-      children: [{ index: true, element: <Home /> }]
+      children: [
+        { index: true, element: <Home /> },
+        { path: "about", element: <About /> },
+        { path: "contact", element: <Contact /> },
+        { path: "emergency", element: <Emergency /> },
+        { path: "faq", element: <FAQ /> },
+        { path: "privacy", element: <Privacy /> },
+      ]
     },
     { path: "/login", element: <Login /> },
     { path: "/register", element: <Register /> },
@@ -144,6 +156,7 @@ function App() {
         { path: "stories/:id", element: <PatientStoryDetails /> },
         { path: "stories/:id/comments", element: <PatientAllComments /> },
         { path: "write-story", element: <WriteStory /> },
+        { path: "write-story/:id", element: <WriteStory /> },
         { path: "prescription", element: <PatientPrescriptions /> },
         { path: "prescription/:id", element: <PrescriptionDetail /> },
         { path: "*", element: <NotFoundpataint /> },

@@ -105,8 +105,10 @@ namespace PulseX.API.Controllers
         {
             try
             {
-                var times = await _scheduleService.GetAvailableTimesForDateAsync(doctorId, date);
-                return Ok(new { date = date.Date, availableTimes = times });
+                var slots = await _scheduleService.GetTimesWithBookingStatusAsync(doctorId, date);
+                var availableTimes = slots.Where(s => !s.IsBooked).Select(s => s.Time).ToList();
+                var bookedTimes    = slots.Where(s =>  s.IsBooked).Select(s => s.Time).ToList();
+                return Ok(new { date = date.Date, availableTimes, bookedTimes });
             }
             catch (Exception ex)
             {

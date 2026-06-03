@@ -14,7 +14,7 @@ const Login = () => {
   const [serverError, setServerError] = useState('');
 
   const formik = useFormik({
-    initialValues: { email: '', password: '', rememberMe: false },
+    initialValues: { email: '', password: '' },
     validationSchema: loginSchema,
     onSubmit: async (values, { setSubmitting }) => {
       setSubmitting(true);
@@ -86,15 +86,7 @@ const Login = () => {
               {formik.touched.password && formik.errors.password && formik.errors.password}
             </div>
 
-            <div className="flex items-center justify-between text-[13px]">
-              <div className="flex items-center gap-2 cursor-pointer text-[13px]">
-                <input
-                  type="checkbox"
-                  {...formik.getFieldProps('rememberMe')}
-                  className="w-4 h-4 accent-brand-main cursor-pointer"
-                />
-                <span className="text-gray-text-dim">Remember me</span>
-              </div>
+            <div className="flex items-center justify-end text-[13px]">
               <Link to="/forgot-password" className="text-brand-main font-medium hover:underline">
                 Forgot password?
               </Link>

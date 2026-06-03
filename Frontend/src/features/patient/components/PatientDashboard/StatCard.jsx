@@ -1,19 +1,19 @@
 const LowWave = () => (
-  <svg width="101" height="65" viewBox="0 0 101 65" fill="none" className="absolute bottom-0 right-0 pointer-events-none">
+  <svg width="101" height="65" viewBox="0 0 101 65" fill="none" className="block pointer-events-none">
     <path d="M99.5801 64.6421C94.169 50.1954 89.4171 31.915 76.4486 30.9393C60.6543 29.3206 56.225 44.9508 42.7229 43.0388C19.7846 41.313 31.0898 3.33072 0.0746655 0.997194" stroke="url(#paint0_low)" strokeWidth="2" />
     <defs><linearGradient id="paint0_low" x1="99.5801" y1="64.6421" x2="17.949" y2="-16.8972" gradientUnits="userSpaceOnUse"><stop offset="0.125" stopColor="#FFC500" stopOpacity="0" /><stop offset="0.488932" stopColor="#FFC500" /><stop offset="1" stopColor="#FFC500" stopOpacity="0" /></linearGradient></defs>
   </svg>
 );
 
 const NormalWave = () => (
-  <svg width="118" height="88" viewBox="0 0 118 88" fill="none" className="absolute bottom-0 right-0 pointer-events-none">
+  <svg width="100" height="65" viewBox="0 0 118 88" fill="none" className="block pointer-events-none">
     <path d="M0.71875 34.1851C11.4402 45.2773 23.0854 60.1481 35.3679 55.8733C50.4983 51.0617 48.3297 34.9614 61.4748 31.3325C83.1998 23.7714 87.9726 63.1119 117.347 52.8884" stroke="url(#paint0_norm)" strokeWidth="2" />
     <defs><linearGradient id="paint0_norm" x1="0.71875" y1="34.1851" x2="108.088" y2="76.4248" gradientUnits="userSpaceOnUse"><stop offset="0.125" stopColor="#00DEA3" stopOpacity="0" /><stop offset="0.488932" stopColor="#00DEA3" /><stop offset="1" stopColor="#00DEA3" stopOpacity="0" /></linearGradient></defs>
   </svg>
 );
 
 const HighWave = () => (
-  <svg width="119" height="107" viewBox="0 0 119 107" fill="none" className="absolute bottom-0 right-0 pointer-events-none">
+  <svg width="100" height="65" viewBox="0 0 119 107" fill="none" className="block pointer-events-none">
     <path d="M0.484375 61.4083C13.9804 68.8812 29.4646 79.6976 39.9606 72.0185C53.0231 62.9934 46.2419 48.2306 57.7517 40.9171C76.3167 27.3346 92.383 63.5607 117.485 45.1956" stroke="url(#paint0_high)" strokeWidth="2" />
     <defs><linearGradient id="paint0_high" x1="0.484375" y1="61.4083" x2="115.512" y2="70.4108" gradientUnits="userSpaceOnUse"><stop offset="0.125" stopColor="#F23985" stopOpacity="0" /><stop offset="0.488932" stopColor="#F23985" /><stop offset="1" stopColor="#F23985" stopOpacity="0" /></linearGradient></defs>
   </svg>
@@ -66,8 +66,8 @@ const StatCard = ({ label, value, unit, status, isHeartRate, icon }) => {
       </div>
       <div
         key={`${label}-${sl}`}
-        className="absolute pointer-events-none"
-        style={{ top: '130.05px', right: waveRight, transformOrigin: 'top right' }}
+        className="absolute bottom-0 pointer-events-none"
+        style={{ right: waveRight }}
       >
         {CurrentWave && <CurrentWave />}
       </div>

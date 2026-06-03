@@ -400,7 +400,7 @@ const PatientPrescriptions = () => {
 
   return (
     <main
-      className="min-h-screen p-[24px] bg-[#FAFBFF] dark:bg-[#0B1120] rounded-[22px]"
+      className="min-h-screen p-[24px]"
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? 'translateY(0)' : 'translateY(18px)',

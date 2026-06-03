@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import PatientRatingModal from '../../components/PatientRatingModal/PatientRatingModal';
 import VideoCallContainer from '../../components/VideoCall/VideoCallContainer';
 import ChatHeader from '../../components/Messages/ChatHeader';
 import MessageInputBar from '../../components/Messages/MessageInputBar';
@@ -68,7 +67,6 @@ const PatientMessages = () => {
     const [showEmoji, setShowEmoji] = useState(false);
     const [convos, setConvos] = useState({});
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [showRating, setShowRating] = useState(false);
 
     const fileRef = useRef(null);
     const bottomRef = useRef(null);
@@ -381,7 +379,10 @@ const PatientMessages = () => {
     }, []);
 
     const doctor = doctorsList.find((item) => item.id === activeId);
-    const canStartVideoCall = Boolean(doctor?.canChat && activeAppointmentId);
+    // Video call must follow the same gate as the chat window — if the
+    // chat is closed (no active appointment window), ringing the doctor
+    // would be a privacy/permissions leak.
+    const canStartVideoCall = Boolean(activeAppointmentId) && Boolean(doctor?.canChat);
     const filteredDoctors = doctorsList.filter((item) =>
         item.name.toLowerCase().includes(search.toLowerCase())
     );
@@ -461,21 +462,6 @@ const PatientMessages = () => {
                 />
             </aside>
 
-            <aside aria-live="polite">
-                <PatientRatingModal
-                    isOpen={showRating}
-                    onClose={() => setShowRating(false)}
-                    onSubmit={(rating, feedback) => {
-                        console.log('Rating submitted:', { doctorId: activeId, rating, feedback });
-                    }}
-                    doctor={{
-                        name: doctor?.name,
-                        img: doctor?.img,
-                        appointmentDate: 'December 15, 2024 at 3:00 PM',
-                    }}
-                />
-            </aside>
-
             <div className="flex h-full overflow-hidden relative">
                 <AnimatePresence>
                     {sidebarOpen && (
@@ -507,10 +493,12 @@ const PatientMessages = () => {
                                 onOpenSidebar={() => setSidebarOpen(true)}
                                 canStartVideo={canStartVideoCall}
                                 onStartVideo={() => {
-                                    if (canStartVideoCall) {
-                                        setIncomingCallAutoStart(false);
-                                        setIsVideoCallOpen(true);
-                                    }
+                                    if (!canStartVideoCall) return;
+                                    setIncomingCallAutoStart(false);
+                                    setIsVideoCallOpen(true);
+                                    // Fallback: send Jitsi link as chat message for other party not on hub
+                                    const jitsiUrl = `https://jitsi.member.fsf.org/PulseXAppt${activeAppointmentId}`;
+                                    sendMsg(`📹 Video call invitation – Join the meeting: ${jitsiUrl}`);
                                 }}
                             />
                             <MessagesList

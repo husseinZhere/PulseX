@@ -17,11 +17,55 @@ import { useTheme } from '../../../../context/ThemeContext';
 import { useAuth } from '../../../../context/AuthContext';
 import { roleHomePath } from '../../../../components/ProtectedRoute/ProtectedRoute';
 
+const TermsModal = ({ onClose }) => (
+  <div className="fixed inset-0 z-[999] flex items-center justify-center px-4">
+    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+    <div className="relative bg-white dark:bg-[#0F172A] rounded-[24px] shadow-2xl border border-gray-100 dark:border-gray-700 w-full max-w-[600px] max-h-[80vh] flex flex-col">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+        <h2 className="text-[18px] font-bold text-black-main-text dark:text-[#E2E8F0]">Terms of Service & Privacy Policy</h2>
+        <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer text-lg font-bold">✕</button>
+      </div>
+      <div className="overflow-y-auto px-6 py-5 text-[14px] text-gray-600 dark:text-gray-400 leading-relaxed space-y-5">
+        <section>
+          <h3 className="font-bold text-[15px] text-black-main-text dark:text-[#E2E8F0] mb-2">1. Acceptance of Terms</h3>
+          <p>By creating an account on PulseX, you agree to these Terms of Service. PulseX is a digital health platform designed to connect patients with qualified cardiologists and heart specialists.</p>
+        </section>
+        <section>
+          <h3 className="font-bold text-[15px] text-black-main-text dark:text-[#E2E8F0] mb-2">2. Medical Disclaimer</h3>
+          <p>PulseX does not provide direct medical diagnoses. All AI-generated assessments (heart risk, X-ray analysis) are informational only and do not replace professional medical advice. Always consult a licensed physician for medical decisions.</p>
+        </section>
+        <section>
+          <h3 className="font-bold text-[15px] text-black-main-text dark:text-[#E2E8F0] mb-2">3. Privacy & Data Protection</h3>
+          <p>Your personal and medical data is stored securely and used solely to provide platform services. We do not sell or share your information with third parties without your explicit consent. Data is encrypted and protected in accordance with applicable healthcare data regulations.</p>
+        </section>
+        <section>
+          <h3 className="font-bold text-[15px] text-black-main-text dark:text-[#E2E8F0] mb-2">4. Account Responsibility</h3>
+          <p>You are responsible for maintaining the confidentiality of your account credentials. You must be at least 13 years old to register. If you suspect unauthorized access, contact support immediately.</p>
+        </section>
+        <section>
+          <h3 className="font-bold text-[15px] text-black-main-text dark:text-[#E2E8F0] mb-2">5. Appointment & Payment Policy</h3>
+          <p>Appointments booked through PulseX are subject to doctor availability. Payment methods include cash and credit card. Refund eligibility depends on the cancellation policy of each doctor.</p>
+        </section>
+        <section>
+          <h3 className="font-bold text-[15px] text-black-main-text dark:text-[#E2E8F0] mb-2">6. Changes to Terms</h3>
+          <p>PulseX reserves the right to update these terms at any time. Continued use of the platform after changes constitutes acceptance of the updated terms.</p>
+        </section>
+      </div>
+      <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700">
+        <button onClick={onClose} className="w-full bg-brand-main hover:bg-[#252CBF] text-white font-bold py-3 rounded-full transition-colors cursor-pointer">
+          I Understand
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
 const Register = () => {
   const navigate = useNavigate();
   const { isDark } = useTheme();
   const { registerPatient } = useAuth();
   const [serverError, setServerError] = useState('');
+  const [showTerms, setShowTerms] = useState(false);
 
   // خيارات التاريخ
   const years = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i);
@@ -120,13 +164,14 @@ const Register = () => {
 
   return (
     <div className="min-h-screen bg-[#F6F7F8] dark:bg-[#020617] pb-20 font-inter">
+      {showTerms && <TermsModal onClose={() => setShowTerms(false)} />}
       <nav className="h-16 bg-white dark:bg-[#0B1220] border-b border-gray-100 dark:border-gray-800 flex items-center px-10 sticky top-0 z-50">
-        <div className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2 no-underline">
           <img src={Logo} alt="PulseX" className="w-8 h-8" />
           <span className="font-inter font-bold text-[20px] text-black-main-text dark:text-[#E2E8F0]">
             Pulse<span className="text-brand-main">X</span>
           </span>
-        </div>
+        </Link>
       </nav>
 
       <div className="max-w-[1200px] mx-auto py-10 px-4 flex flex-col items-center">
@@ -257,7 +302,7 @@ const Register = () => {
                   className="mt-1 w-5 h-5 accent-brand-main cursor-pointer"
                 />
                 <div>
-                  <p className="text-[14px] text-black-main-text font-medium">I agree to the <span className="text-brand-main underline cursor-pointer">Terms of Service and Privacy Policy</span></p>
+                  <p className="text-[14px] text-black-main-text font-medium">I agree to the <button type="button" onClick={() => setShowTerms(true)} className="text-brand-main underline cursor-pointer font-medium hover:text-[#252CBF] transition-colors">Terms of Service and Privacy Policy</button></p>
                   <p className="text-[13px] text-gray-text-dim2 mt-1">By checking this box, you agree to our terms and conditions</p>
                 </div>
               </div>

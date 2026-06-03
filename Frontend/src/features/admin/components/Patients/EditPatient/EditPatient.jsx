@@ -35,6 +35,7 @@ export default function EditPatient() {
         const payload = {
           firstName: values.firstName.trim(),
           lastName: values.lastName.trim(),
+          email: values.email.trim(),
           phoneNumber: values.phone,
           dateOfBirth: values.dateOfBirth ? values.dateOfBirth.toISOString() : null,
           gender: values.gender,
@@ -164,7 +165,7 @@ export default function EditPatient() {
                     onChange={(date) => formik.setFieldValue('dateOfBirth', date)}
                     className="w-full outline-none text-[16px] font-normal bg-transparent text-gray-900 dark:text-[#E2E8F0]"
                     placeholderText="Select date"
-                    maxDate={new Date()}
+                    maxDate={(() => { const d = new Date(); d.setFullYear(d.getFullYear() - 13); return d; })()}
                     minDate={new Date("1900-01-01")}
                     showYearDropdown
                     scrollableYearDropdown

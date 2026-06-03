@@ -19,22 +19,22 @@ const formatValue = (value, unit = '') => {
 };
 
 const InfoItem = ({ icon, label, value }) => (
-    <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
-        <p className="mb-1 flex items-center gap-1.5 text-[12px] text-[#64748B]">
+    <div className="rounded-xl border border-[#E2E8F0] dark:border-gray-700 bg-[#F8FAFC] dark:bg-[#1E293B] p-3">
+        <p className="mb-1 flex items-center gap-1.5 text-[12px] text-[#64748B] dark:text-gray-400">
             {icon}
             {label}
         </p>
-        <p className="text-[14px] font-semibold text-[#0F172A]">{value || 'Not set'}</p>
+        <p className="text-[14px] font-semibold text-[#0F172A] dark:text-[#E2E8F0]">{value || 'Not set'}</p>
     </div>
 );
 
 const HealthCard = ({ icon, label, value }) => (
-    <article className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
-        <p className="mb-1 flex items-center gap-1.5 text-[12px] text-[#64748B]">
+    <article className="rounded-xl border border-[#E2E8F0] dark:border-gray-700 bg-[#F8FAFC] dark:bg-[#1E293B] p-3">
+        <p className="mb-1 flex items-center gap-1.5 text-[12px] text-[#64748B] dark:text-gray-400">
             {icon}
             {label}
         </p>
-        <p className="text-[14px] font-semibold text-[#0F172A]">{value}</p>
+        <p className="text-[14px] font-semibold text-[#0F172A] dark:text-[#E2E8F0]">{value}</p>
     </article>
 );
 
@@ -54,8 +54,8 @@ const PatientHealthInfoSection = ({ patient }) => {
 
     return (
         <section className="mt-6 grid grid-cols-1 gap-4 xl:grid-cols-2" aria-label="Patient extended details">
-            <article className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm" aria-labelledby="patient-profile-details-title">
-                <h2 id="patient-profile-details-title" className="text-[20px] font-bold text-[#0F172A]">
+            <article className="rounded-2xl border border-[#E2E8F0] dark:border-gray-700 bg-white dark:bg-[#111827] p-5 shadow-sm dark:shadow-none" aria-labelledby="patient-profile-details-title">
+                <h2 id="patient-profile-details-title" className="text-[20px] font-bold text-[#0F172A] dark:text-[#E2E8F0]">
                     Patient Profile Details
                 </h2>
 
@@ -68,20 +68,20 @@ const PatientHealthInfoSection = ({ patient }) => {
                 </div>
 
                 {patient.about ? (
-                    <div className="mt-4 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
-                        <p className="mb-1 text-[12px] text-[#64748B]">About</p>
-                        <p className="text-[14px] leading-relaxed text-[#0F172A]">{patient.about}</p>
+                    <div className="mt-4 rounded-xl border border-[#E2E8F0] dark:border-gray-700 bg-[#F8FAFC] dark:bg-[#1E293B] p-3">
+                        <p className="mb-1 text-[12px] text-[#64748B] dark:text-gray-400">About</p>
+                        <p className="text-[14px] leading-relaxed text-[#0F172A] dark:text-[#E2E8F0]">{patient.about}</p>
                     </div>
                 ) : null}
             </article>
 
-            <article className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm" aria-labelledby="patient-health-info-title">
-                <h2 id="patient-health-info-title" className="text-[20px] font-bold text-[#0F172A]">
+            <article className="rounded-2xl border border-[#E2E8F0] dark:border-gray-700 bg-white dark:bg-[#111827] p-5 shadow-sm dark:shadow-none" aria-labelledby="patient-health-info-title">
+                <h2 id="patient-health-info-title" className="text-[20px] font-bold text-[#0F172A] dark:text-[#E2E8F0]">
                     Health Information
                 </h2>
 
                 {!hasHealthInfo ? (
-                    <div className="mt-4 rounded-xl border border-dashed border-[#CBD5E1] bg-[#F8FAFC] p-5 text-[14px] text-[#64748B]">
+                    <div className="mt-4 rounded-xl border border-dashed border-[#CBD5E1] dark:border-gray-600 bg-[#F8FAFC] dark:bg-[#1E293B] p-5 text-[14px] text-[#64748B] dark:text-gray-400">
                         This patient has not submitted health information from settings yet.
                     </div>
                 ) : (
@@ -95,7 +95,7 @@ const PatientHealthInfoSection = ({ patient }) => {
                             <HealthCard icon={<LuActivity />} label="Blood Count" value={formatValue(healthInfo.bloodCount)} />
                             <HealthCard icon={<LuHeartPulse />} label="Heart Rate" value={formatValue(healthInfo.heartRate)} />
                         </div>
-                        <p className="mt-3 text-[12px] text-[#64748B]">
+                        <p className="mt-3 text-[12px] text-[#64748B] dark:text-gray-400">
                             Last updated: {formatDate(healthInfo.lastUpdated)}
                         </p>
                     </>

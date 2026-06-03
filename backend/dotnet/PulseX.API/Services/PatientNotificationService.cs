@@ -231,7 +231,9 @@ namespace PulseX.API.Services
             int patientId,
             string title,
             string message,
-            int storyId)
+            int storyId,
+            string? actorName = null,
+            string? actorAvatar = null)
         {
             var notification = new PatientNotification
             {
@@ -242,6 +244,8 @@ namespace PulseX.API.Services
                 Message = message,
                 ActionUrl = $"/patient/stories/{storyId}",
                 IconType = "info",
+                ActorName = actorName,
+                ActorAvatar = actorAvatar,
                 IsRead = false,
                 CreatedAt = DateTime.UtcNow
             };
@@ -302,6 +306,8 @@ namespace PulseX.API.Services
                 ActionUrl = notification.ActionUrl,
                 IconType = notification.IconType,
                 StatusColor = GetStatusColorFromRiskLevel(notification.RiskLevel),
+                ActorName = notification.ActorName,
+                ActorAvatar = notification.ActorAvatar,
                 IsRead = notification.IsRead,
                 CreatedAt = notification.CreatedAt,
                 ReadAt = notification.ReadAt

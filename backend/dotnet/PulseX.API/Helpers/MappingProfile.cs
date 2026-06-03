@@ -59,7 +59,8 @@ namespace PulseX.API.Helpers
                 .ForMember(dest => dest.ClinicLocation, opt => opt.MapFrom(src =>
                     src.Doctor != null ? src.Doctor.ClinicLocation : null))
                 .ForMember(dest => dest.Gender, opt => opt.MapFrom(src =>
-                    src.Patient != null ? src.Patient.Gender : null));
+                    src.Patient != null ? src.Patient.Gender :
+                    src.Doctor  != null ? src.Doctor.Gender  : null));
 
             // Doctor mappings
             CreateMap<Doctor, DoctorListDto>()

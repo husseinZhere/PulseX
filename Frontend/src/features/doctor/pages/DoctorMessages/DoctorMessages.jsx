@@ -380,7 +380,10 @@ const DoctorMessages = () => {
     }, []);
 
     const patient = patientsList.find((item) => item.id === activeId);
-    const canStartVideoCall = Boolean(patient?.canChat && activeAppointmentId);
+    // Video call must follow the same gate as the chat window — if the
+    // chat is closed (no active appointment window), ringing the patient
+    // would bypass the booking/payment rules.
+    const canStartVideoCall = Boolean(activeAppointmentId) && Boolean(patient?.canChat);
     const filteredPatients = patientsList.filter((item) =>
         item.name.toLowerCase().includes(search.toLowerCase())
     );
@@ -515,10 +518,12 @@ const DoctorMessages = () => {
                                 onOpenSidebar={() => setSidebarOpen(true)}
                                 canStartVideo={canStartVideoCall}
                                 onStartVideo={() => {
-                                    if (canStartVideoCall) {
-                                        setIncomingCallAutoStart(false);
-                                        setIsVideoCallOpen(true);
-                                    }
+                                    if (!canStartVideoCall) return;
+                                    setIncomingCallAutoStart(false);
+                                    setIsVideoCallOpen(true);
+                                    // Fallback: send Jitsi link as chat message for patients not on hub
+                                    const jitsiUrl = `https://jitsi.member.fsf.org/PulseXAppt${activeAppointmentId}`;
+                                    sendMsg(`📹 Video call invitation – Join the meeting: ${jitsiUrl}`);
                                 }}
                             />
 

@@ -19,7 +19,7 @@ const StoriesGrid = ({ stories, onReadStory }) => {
           <h3 className="text-[16px] font-bold text-black-main-text dark:text-[#E2E8F0] leading-snug mb-3">{story.title}</h3>
 
           <p className="text-[13px] text-gray-500 leading-relaxed mb-6 line-clamp-3">
-            "Last year, my heart health was at a critical point. Thanks to the right care and community support, I transformed my life..."
+            {story.excerpt}
           </p>
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-2 mt-4 sm:mt-0">

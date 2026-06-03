@@ -393,8 +393,14 @@ namespace PulseX.API.Services
             }
 
             var appointments = await _appointmentRepository.GetByPatientIdAsync(patient.Id);
+
+            // AppointmentDate is stored as Egypt local time (UTC+2, Unspecified kind).
+            // Compare with Egypt "now" — never convert AppointmentDate itself.
+            var egyptTz  = TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time");
+            var egyptNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, egyptTz);
+
             var upcoming = appointments
-                .Where(a => a.AppointmentDate >= DateTime.UtcNow && 
+                .Where(a => a.AppointmentDate >= egyptNow &&
                            (a.Status == AppointmentStatus.Scheduled || a.Status == AppointmentStatus.Confirmed))
                 .OrderBy(a => a.AppointmentDate)
                 .Take(2)
@@ -404,6 +410,7 @@ namespace PulseX.API.Services
                     DoctorName = a.Doctor?.User?.FullName ?? "Unknown Doctor",
                     DoctorSpecialty = a.Doctor?.Specialization,
                     DoctorProfilePicture = a.Doctor?.ProfilePicture,
+                    ClinicLocation = a.Doctor?.ClinicLocation,
                     AppointmentDate = a.AppointmentDate,
                     Status = a.Status.ToString(),
                     TimeSlot = a.AppointmentDate.ToString("hh:mm tt")

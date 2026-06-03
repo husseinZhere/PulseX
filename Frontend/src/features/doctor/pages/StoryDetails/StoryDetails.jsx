@@ -17,7 +17,28 @@ import {
   shareStory,
 } from '../../../../services/storyService';
 import { reportStory as submitStoryReport } from '../../../../services/reportService';
-import { resolveFileUrl } from '../../../../utils/api';
+import { getStoredUser, resolveFileUrl } from '../../../../utils/api';
+import { readProfilePhoto, subscribeProfilePhoto } from '../../../../utils/profilePhotoStorage';
+
+const ssGet = (key, id) => { try { return JSON.parse(sessionStorage.getItem(key) || '[]').includes(id); } catch { return false; } };
+const ssSet = (key, id) => { try { const a = JSON.parse(sessionStorage.getItem(key) || '[]'); if (!a.includes(id)) { a.push(id); sessionStorage.setItem(key, JSON.stringify(a)); } } catch { /* ignore */ } };
+const LIKED_KEY = 'pulsex_liked_stories';
+const SHARED_KEY = 'pulsex_shared_stories';
+
+const copyToClipboard = async (text) => {
+  if (navigator.clipboard && window.isSecureContext) {
+    await navigator.clipboard.writeText(text);
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+};
 
 const TAG_COLOURS = {
   Lifestyle: 'bg-[#FFF3E0] dark:bg-[#1E293B] text-[#F57C00] border-[#FFE0B2]',
@@ -101,6 +122,11 @@ const mapStory = (rawStory) => {
 const DoctorStoryDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const currentUser = getStoredUser() || {};
+  const doctorInitials = (currentUser.firstName || currentUser.fullName || 'D')[0].toUpperCase();
+  const [doctorAvatar, setDoctorAvatar] = useState(() => readProfilePhoto('doctor') || '');
+
+  useEffect(() => subscribeProfilePhoto('doctor', (photo) => setDoctorAvatar(photo || '')), []);
 
   useEffect(() => {
     document.title = 'Story Details | PulseX';
@@ -144,7 +170,7 @@ const DoctorStoryDetails = () => {
         setCommentsCount(mapped.story.commentsCount);
         setLikesCount(mapped.story.likes);
         setSharesCount(mapped.story.shares);
-        setIsLiked(false);
+        setIsLiked(ssGet(LIKED_KEY, mapped.story.id));
         setComment('');
         setReportStory(false);
         setShowCommentBox(false);
@@ -186,6 +212,7 @@ const DoctorStoryDetails = () => {
       const nextLikes = response?.likesCount ?? response?.data?.likesCount ?? (likesCount + 1);
       setLikesCount(nextLikes);
       setIsLiked(true);
+      ssSet(LIKED_KEY, story.id);
     } catch (err) {
       showToast('Like Failed', err?.response?.data?.message || err?.message || 'Please try again.');
     }
@@ -194,21 +221,26 @@ const DoctorStoryDetails = () => {
   const handleShare = async () => {
     if (!story) return;
 
+    let copied = false;
     try {
-      await navigator.clipboard.writeText(window.location.href);
+      await copyToClipboard(window.location.href);
+      copied = true;
     } catch {
-      // Clipboard may fail outside secure browser contexts.
+      // ignore
     }
 
-    try {
-      const response = await shareStory(story.id);
-      const nextShares = response?.sharesCount ?? response?.data?.sharesCount ?? (sharesCount + 1);
-      setSharesCount(nextShares);
-    } catch {
-      // Keep the UI responsive even if share tracking fails.
+    if (!ssGet(SHARED_KEY, story.id)) {
+      try {
+        const response = await shareStory(story.id);
+        const nextShares = response?.sharesCount ?? response?.data?.sharesCount ?? (sharesCount + 1);
+        setSharesCount(nextShares);
+        ssSet(SHARED_KEY, story.id);
+      } catch {
+        // Keep the UI responsive even if share tracking fails.
+      }
     }
 
-    showToast('Link Copied!', 'Story link copied to clipboard.');
+    showToast(copied ? 'Link Copied!' : 'Share', copied ? 'Story link copied to clipboard.' : `Copy this link: ${window.location.href}`);
   };
 
   const handlePostComment = async () => {
@@ -314,7 +346,8 @@ const DoctorStoryDetails = () => {
         {showCommentBox && (
           <>
             <AddCommentBox
-              storyAuthorImg={story.authorImg}
+              storyAuthorImg={doctorAvatar}
+              currentUserInitials={doctorInitials}
               comment={comment}
               onChange={(e) => setComment(e.target.value)}
               onCancel={() => { setComment(''); setShowCommentBox(false); }}

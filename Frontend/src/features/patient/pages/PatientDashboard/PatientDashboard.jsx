@@ -1,6 +1,12 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import usePatientData from '../../../../PatientHooks/usePatientData';
+
+const withDrPrefix = (name) => {
+  if (!name) return '';
+  const t = name.trim();
+  return /^dr\.?\s/i.test(t) ? t : `DR. ${t}`;
+};
 import DashboardWelcome from '../../components/PatientDashboard/DashboardWelcome';
 import VitalsSection from '../../components/PatientDashboard/VitalsSection';
 import LeftColumn from '../../components/PatientDashboard/LeftColumn';
@@ -26,7 +32,7 @@ const PatientDashboard = () => {
   const v = patient.vitals;
   const doctors = (patient.featuredDoctors || []).map((doctor, index) => ({
     id: doctor.id ?? index,
-    name: doctor.name || '',
+    name: withDrPrefix(doctor.name || ''),
     loc: doctor.location || doctor.specialization || '',
     rating: Number(doctor.rating) || 0,
     img: doctor.img,

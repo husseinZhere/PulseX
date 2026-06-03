@@ -119,7 +119,7 @@ const DoctorDashboard = () => {
   }));
 
   const doctorName = dashboard?.doctorName || 'Doctor';
-  const doctorPhoto = resolveAvatar(dashboard?.doctorProfilePicture || '', '/image/doctor-hero.jpg');
+  const doctorPhoto = resolveAvatar(dashboard?.doctorProfilePicture || '', '');
 
   return (
     <main className="min-h-full p-6 sm:p-8 space-y-6" aria-label="Doctor dashboard page">
@@ -147,6 +147,7 @@ const DoctorDashboard = () => {
           <CriticalPatientsCard
             patients={hasData ? critical : []}
             onViewMore={() => navigate('/doctor/patients')}
+            onPatientClick={(id) => navigate(`/doctor/patients/${id}`)}
           />
         </section>
       </div>

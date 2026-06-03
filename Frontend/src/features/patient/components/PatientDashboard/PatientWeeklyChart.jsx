@@ -62,16 +62,27 @@ const PatientWeeklyChart = ({ weeklyData = [] }) => {
   const data = normalizeSeries(weeklyData);
   const hasData = data.length > 0;
 
+  // Dynamic Y-axis: pad 10 BPM above/below the actual range so spikes aren't clipped
+  const values = data.map((d) => d.value).filter(Number.isFinite);
+  const dataMin = values.length ? Math.min(...values) : 0;
+  const dataMax = values.length ? Math.max(...values) : 100;
+  const yMin = Math.max(0, Math.floor((dataMin - 10) / 10) * 10);
+  const yMax = Math.ceil((dataMax + 10) / 10) * 10;
+  const yTicks = Array.from(
+    { length: Math.round((yMax - yMin) / 20) + 1 },
+    (_, i) => yMin + i * 20
+  );
+
   return (
     <div className="w-full h-full flex flex-col">
       {/* Header section */}
       <div className="flex items-start justify-between mb-4">
         <div>
           <h3 className="text-[18px] font-bold text-black-main-text dark:text-[#E2E8F0] leading-tight font-['Roboto']">
-            Weekly Health Overview
+            Heart Rate (BPM) — Last 7 Days
           </h3>
           <p className="text-[13px] text-gray-text-dim2 mt-1 font-['Roboto']">
-            Analyze how your heart health improves throughout the week
+            Daily average heart rate recorded over the past week
           </p>
         </div>
         <span className="text-[14px] text-gray-text-dim2 font-medium font-['Roboto']">
@@ -102,13 +113,14 @@ const PatientWeeklyChart = ({ weeklyData = [] }) => {
               <YAxis
                 axisLine={false}
                 tickLine={false}
-                domain={[0, 100]}
-                ticks={[0, 20, 40, 60, 80, 100]}
+                domain={[yMin, yMax]}
+                ticks={yTicks}
                 tick={{ fill: axisTickColor, fontSize: 11 }}
               />
 
               <Tooltip
                 cursor={{ stroke: '#4850E9', strokeWidth: 1, strokeDasharray: '4 4' }}
+                formatter={(value) => [`${value} BPM`, 'Heart Rate']}
                 contentStyle={{
                   backgroundColor: tooltipBg,
                   border: `1px solid ${tooltipBorder}`,

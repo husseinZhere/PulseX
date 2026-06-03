@@ -16,7 +16,6 @@ import FieldError from '../../DoctorForm/shared/FieldError';
 import InputField from '../../DoctorForm/shared/InputField';
 import { GenderToggle } from '../../shared';
 import { getAllUsers, updateDoctor, deleteDoctor } from '../../../../../services/adminService';
-import { getDoctorProfilePublic } from '../../../../../services/doctorService';
 import { resolveFileUrl } from '../../../../../utils/api';
 
 export default function EditDoctor() {
@@ -35,6 +34,7 @@ export default function EditDoctor() {
         const payload = {
           FirstName: values.firstName.trim(),
           LastName: values.lastName.trim(),
+          Email: values.email.trim(),
           PhoneNumber: values.phone,
           DateOfBirth: values.dateOfBirth ? values.dateOfBirth.toISOString() : null,
           Gender: values.gender,
@@ -76,19 +76,14 @@ export default function EditDoctor() {
         const user = (users || []).find((u) => u.id === Number(id));
         if (!user) return;
         const [firstName, ...rest] = (user.fullName || '').split(' ');
-        let consultationPrice = user.consultationPrice ?? '';
-        let clinicLocation = user.clinicLocation || '';
-        let picture = user.profilePicture || '';
-        let genderRaw = user.gender || '';
-        try {
-          const profile = await getDoctorProfilePublic(user.id);
-          consultationPrice = profile?.consultationPrice ?? consultationPrice;
-          clinicLocation = profile?.clinicLocation || clinicLocation;
-          picture = profile?.profilePicture || picture;
-          genderRaw = profile?.gender || genderRaw;
-        } catch {
-          // ignore; use data already available from getAllUsers
-        }
+        // getAllUsers (UserManagementDto) already returns the doctor's price,
+        // location, gender and photo keyed to this exact user. Do NOT re-fetch
+        // via getDoctorProfilePublic(user.id) — that endpoint expects the Doctor
+        // table PK, not the User ID, so it returns a DIFFERENT doctor's data.
+        const consultationPrice = user.consultationPrice ?? '';
+        const clinicLocation = user.clinicLocation || '';
+        const picture = user.profilePicture || '';
+        const genderRaw = user.gender || '';
         if (ignore) return;
         formik.setValues({
           firstName: firstName || '',
@@ -195,7 +190,7 @@ export default function EditDoctor() {
                     className="w-full outline-none text-[16px] font-normal bg-transparent text-gray-900 dark:text-[#E2E8F0]"
                     placeholderText="Select date"
                     dateFormat="MMM dd, yyyy"
-                    maxDate={new Date()}
+                    maxDate={(() => { const d = new Date(); d.setFullYear(d.getFullYear() - 22); return d; })()}
                     minDate={new Date("1900-01-01")}
                     showYearDropdown
                     scrollableYearDropdown

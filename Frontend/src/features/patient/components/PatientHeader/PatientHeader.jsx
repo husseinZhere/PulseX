@@ -15,6 +15,7 @@ import {
   markPatientNotificationRead,
 } from '../../../../services/notificationService';
 import { ensureChatConnection, onChatEvent } from '../../../../services/chatRealtimeService';
+import { playMessageSound, playNotificationSound } from '../../../../utils/notificationSound';
 
 const PHOTO_UID_KEY = 'pulsex-profile-photo-patient-uid';
 
@@ -30,10 +31,18 @@ function formatTime(d) {
   return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 }
 
+const parseUtcDate = (value) => {
+  if (!value) return null;
+  const s = String(value);
+  // Treat strings without timezone indicator as UTC (backend stores DateTime.UtcNow)
+  const normalized = s.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(s) ? s : `${s}Z`;
+  const d = new Date(normalized);
+  return Number.isNaN(d.getTime()) ? null : d;
+};
+
 const timeAgo = (value) => {
-  if (!value) return '';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
+  const date = parseUtcDate(value);
+  if (!date) return '';
 
   const diffMs = Date.now() - date.getTime();
   const diffMinutes = Math.max(0, Math.floor(diffMs / 60000));
@@ -48,13 +57,21 @@ const timeAgo = (value) => {
 };
 
 const notificationIcon = (type, iconType) => {
-  const normalized = String(iconType || type || '').toLowerCase();
-  if (normalized.includes('prescription')) return 'RX';
-  if (normalized.includes('calendar') || normalized.includes('appointment')) return '📅';
-  if (normalized.includes('alert') || normalized.includes('warning')) return '!';
-  if (normalized.includes('success')) return '✓';
-  if (normalized.includes('story')) return '♥';
-  return 'i';
+  const t = String(type || '').toLowerCase();
+  const i = String(iconType || '').toLowerCase();
+  if (t.includes('heartrisk') || t.includes('heart_risk')) return '❤️';
+  if (t.includes('prescription')) return '💊';
+  if (t.includes('appointment')) return '📅';
+  if (t.includes('story')) return '📖';
+  if (t.includes('health')) {
+    if (i === 'success') return '✅';
+    if (i === 'alert' || i === 'warning') return '⚠️';
+    return '🩺';
+  }
+  if (i === 'success') return '✅';
+  if (i === 'alert') return '🚨';
+  if (i === 'warning') return '⚠️';
+  return '🔔';
 };
 
 const notificationBg = (priority, statusColor) => {
@@ -83,6 +100,8 @@ const mapNotification = (notification) => ({
   icon: notificationIcon(notification.type, notification.iconType),
   bg: notificationBg(notification.priority, notification.statusColor),
   actionUrl: notification.actionUrl,
+  actorAvatar: notification.actorAvatar ? resolveFileUrl(notification.actorAvatar) : null,
+  actorName: notification.actorName || null,
 });
 
 const mapInboxItem = (item) => ({
@@ -223,6 +242,10 @@ const PatientHeader = () => {
 
   // Keep ref in sync so SignalR handler always calls the latest loadHeaderData.
   const loadHeaderDataFn = useRef(null);
+  // Track previous unread notification count to detect increases and play sound.
+  const prevUnreadNotifRef = useRef(null);
+  // Track previous unread message count — fallback in case SignalR misses.
+  const prevUnreadMsgRef = useRef(null);
 
   useEffect(() => {
     let ignore = false;
@@ -245,6 +268,21 @@ const PatientHeader = () => {
           ? inboxResponse.conversations
           : [];
 
+        const unreadCount = notificationItems.filter((n) => !(n.isRead ?? n.IsRead)).length;
+        if (prevUnreadNotifRef.current !== null && unreadCount > prevUnreadNotifRef.current) {
+          playNotificationSound();
+        }
+        prevUnreadNotifRef.current = unreadCount;
+
+        const totalUnreadMsg = messageItems.reduce(
+          (sum, m) => sum + (Number(m.unreadCount ?? m.UnreadCount) || 0),
+          0
+        );
+        if (prevUnreadMsgRef.current !== null && totalUnreadMsg > prevUnreadMsgRef.current) {
+          playMessageSound();
+        }
+        prevUnreadMsgRef.current = totalUnreadMsg;
+
         setNotifications(notificationItems.map(mapNotification));
         setMessages(messageItems.map(mapInboxItem));
       } catch (err) {
@@ -254,7 +292,7 @@ const PatientHeader = () => {
 
     loadHeaderDataFn.current = loadHeaderData;
     loadHeaderData();
-    const interval = setInterval(loadHeaderData, 30000);
+    const interval = setInterval(loadHeaderData, 15000);
 
     // SignalR: refresh inbox instantly when a new message arrives.
     let cleanupSignalR = () => {};
@@ -264,6 +302,7 @@ const PatientHeader = () => {
           const senderId = Number(msg?.senderId ?? msg?.SenderId);
           const currentUserId = Number(user?.userId);
           if (senderId && currentUserId && senderId !== currentUserId) {
+            playMessageSound();
             loadHeaderDataFn.current?.();
           }
         });
@@ -349,7 +388,7 @@ const PatientHeader = () => {
               <HiOutlineEnvelope className="text-[18px] text-[#6b7280]" />
               {unreadMsg > 0 && (
                 <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-[#00C950] text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white font-roboto">
-                  {unreadMsg}
+                  {unreadMsg > 9 ? '9+' : unreadMsg}
                 </span>
               )}
             </button>
@@ -453,7 +492,7 @@ const PatientHeader = () => {
               <HiOutlineBell className="text-[18px] text-[#6b7280]" />
               {unreadNotif > 0 && (
                 <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-[#FB2C36] text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white font-roboto">
-                  {unreadNotif}
+                  {unreadNotif > 9 ? '9+' : unreadNotif}
                 </span>
               )}
             </button>
@@ -486,9 +525,17 @@ const PatientHeader = () => {
                 <div className="max-h-[340px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-50 dark:scrollbar-track-[#0B1220]">
                   {notifications.length > 0 ? notifications.map(n => (
                     <div key={n.id} className={`flex items-start gap-3 px-4 py-3 border-b border-gray-100 dark:border-gray-800 last:border-none transition-colors hover:bg-gray-50 dark:hover:bg-[#1E293B]/55 ${n.unread ? 'bg-[#FAFCFF] dark:bg-[#1A2236]' : 'bg-white dark:bg-[#111827]'}`}>
-                      <div className="w-[38px] h-[38px] rounded-full flex items-center justify-center shrink-0 shadow-sm" style={{ background: n.bg }}>
-                        <span className="text-[15px]">{n.icon}</span>
-                      </div>
+                      {n.actorAvatar ? (
+                        <img
+                          src={n.actorAvatar}
+                          alt={n.actorName || 'Actor'}
+                          className="w-[38px] h-[38px] rounded-full object-cover shrink-0 border-2 border-gray-200 dark:border-gray-700"
+                        />
+                      ) : (
+                        <div className="w-[38px] h-[38px] rounded-full flex items-center justify-center shrink-0 shadow-sm" style={{ background: n.bg }}>
+                          <span className="text-[15px]">{n.icon}</span>
+                        </div>
+                      )}
                       <div className="flex-1 min-w-0">
                         <div className="text-[13px] font-bold text-black-main-text dark:text-[#E2E8F0] mb-0.5 font-roboto">{n.title}</div>
                         <div className="text-[12px] text-[#6b7280] dark:text-gray-300 leading-[1.4] font-roboto">{n.desc}</div>

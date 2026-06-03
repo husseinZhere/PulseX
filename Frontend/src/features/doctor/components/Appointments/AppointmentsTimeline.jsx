@@ -89,7 +89,7 @@ const UpcomingCard = ({ item, onCancel, onViewRecord, index }) => (
           )}
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[13px] text-[#6B7280]">Today</span>
+          <span className="text-[13px] text-[#6B7280]">{item.dateLabel || 'Today'}</span>
           <span className="text-[#D1D5DB]">·</span>
           <LocationBadge isOnline={item.isOnline} room={item.room} />
         </div>

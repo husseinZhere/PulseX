@@ -45,7 +45,7 @@ const INITIAL_MESSAGES = [
   {
     id: 1,
     role: 'assistant',
-    text: "Hey there! 👋 I'm PulseX, your AI assistant. How can I help you today?",
+    text: "Hey there! 👋 I'm EKO, your AI assistant. How can I help you today?",
   },
 ];
 
@@ -118,12 +118,12 @@ const PatientChatbot = () => {
           <div className="relative flex items-center gap-3 w-full">
             {/* Avatar */}
             <div className="w-13 h-13 bg-white dark:bg-[#111827] rounded-full shadow-lg flex items-center justify-center overflow-hidden border border-transparent dark:border-gray-700">
-              <img className="w-15 h-15 object-cover animate-bot-alive" src={chatbotIcon} alt="PulseX" />
+              <img className="w-15 h-15 object-cover" src={chatbotIcon} alt="PulseX" />
             </div>
 
             {/* Info */}
             <div className="flex flex-col">
-              <span className="text-white text-base font-medium font-roboto leading-6">PulseX Assistant</span>
+              <span className="text-white text-base font-medium font-roboto leading-6">EKO</span>
               <div className="flex items-center gap-1">
                 <div className="w-2 h-2 bg-cyan-300 rounded-full animate-pulse" />
                 <span className="text-white/90 text-sm font-roboto">Online</span>
@@ -204,7 +204,16 @@ const PatientChatbot = () => {
         onClick={() => setIsOpen(!isOpen)}
         className={`fixed bottom-6 right-3 sm:bottom-8 sm:right-6 w-16 h-16 sm:w-20 sm:h-24 bg-transparent sm:flex items-center justify-center hover:scale-110 transition-transform z-50 cursor-pointer ${isOpen ? 'hidden sm:flex' : 'flex'}`}
       >
-        <img src={chatbotIcon} className="shadow-5xl w-30 h-30 animate-bot-alive" alt="chat" />
+        <div className="relative">
+          <img src={chatbotIcon} className="shadow-5xl w-30 h-30 animate-bot-alive" alt="chat" />
+          {/* Waving hand */}
+          <span
+            className="absolute -top-2 -right-2 text-2xl select-none animate-wave-hand"
+            style={{ display: 'inline-block' }}
+          >
+            👋
+          </span>
+        </div>
       </button>
     </>
   );

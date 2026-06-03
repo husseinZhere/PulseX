@@ -29,6 +29,17 @@ namespace PulseX.API.Services
             await SendAsync(toEmail, subject, body);
         }
 
+        /// <summary>
+        /// Forward a contact-form submission to the platform support inbox.
+        /// </summary>
+        public async Task SendContactFormEmailAsync(string senderName, string senderEmail, string subject, string message)
+        {
+            var supportEmail = _configuration["Email:SupportEmail"] ?? _configuration["Email:Username"]!;
+            var emailSubject = $"📬 Contact Form: {subject}";
+            var body         = BuildContactFormHtml(senderName, senderEmail, subject, message);
+            await SendAsync(supportEmail, emailSubject, body);
+        }
+
         // ─────────────────────────────────────────────────────────────────────────
         // Core SMTP sender
         // ─────────────────────────────────────────────────────────────────────────
@@ -73,6 +84,77 @@ namespace PulseX.API.Services
         // ─────────────────────────────────────────────────────────────────────────
         // HTML Template
         // ─────────────────────────────────────────────────────────────────────────
+
+        private static string BuildContactFormHtml(string senderName, string senderEmail, string subject, string message)
+        {
+            var safeMessage = System.Net.WebUtility.HtmlEncode(message).Replace("\n", "<br/>");
+            return $@"
+<!DOCTYPE html>
+<html lang=""en"">
+<head><meta charset=""UTF-8""/><meta name=""viewport"" content=""width=device-width,initial-scale=1.0""/></head>
+<body style=""margin:0;padding:0;background:#f0f4ff;font-family:'Segoe UI',Helvetica,Arial,sans-serif;"">
+  <table width=""100%"" cellpadding=""0"" cellspacing=""0"" style=""background:#f0f4ff;padding:48px 16px;"">
+    <tr><td align=""center"">
+      <table width=""560"" cellpadding=""0"" cellspacing=""0""
+             style=""background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(59,91,219,.12);"">
+
+        <tr>
+          <td style=""background:linear-gradient(135deg,#3b5bdb 0%,#5c7cfa 100%);padding:36px 48px;text-align:center;"">
+            <span style=""color:#fff;font-size:26px;font-weight:700;"">PulseX</span>
+            <p style=""color:rgba(255,255,255,.8);margin:8px 0 0;font-size:13px;letter-spacing:.5px;text-transform:uppercase;"">New Contact Form Submission</p>
+          </td>
+        </tr>
+
+        <tr>
+          <td style=""padding:40px 48px;"">
+            <h2 style=""margin:0 0 24px;font-size:20px;color:#1a1a2e;"">📬 You have a new message</h2>
+
+            <table width=""100%"" cellpadding=""0"" cellspacing=""0""
+                   style=""background:#f8faff;border:1px solid #dbe4ff;border-radius:12px;padding:24px;margin-bottom:28px;"">
+              <tr>
+                <td style=""padding:8px 0;"">
+                  <span style=""font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;"">From</span><br/>
+                  <span style=""font-size:15px;color:#1a1a2e;font-weight:600;"">{System.Net.WebUtility.HtmlEncode(senderName)}</span>
+                </td>
+              </tr>
+              <tr>
+                <td style=""padding:8px 0;border-top:1px solid #e5e7eb;"">
+                  <span style=""font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;"">Email</span><br/>
+                  <a href=""mailto:{senderEmail}"" style=""font-size:15px;color:#3b5bdb;text-decoration:none;"">{senderEmail}</a>
+                </td>
+              </tr>
+              <tr>
+                <td style=""padding:8px 0;border-top:1px solid #e5e7eb;"">
+                  <span style=""font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;"">Subject</span><br/>
+                  <span style=""font-size:15px;color:#1a1a2e;font-weight:600;"">{System.Net.WebUtility.HtmlEncode(subject)}</span>
+                </td>
+              </tr>
+            </table>
+
+            <p style=""font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin:0 0 10px;"">Message</p>
+            <div style=""background:#f9fafb;border-left:4px solid #3b5bdb;border-radius:8px;padding:20px 24px;font-size:15px;color:#374151;line-height:1.7;margin-bottom:32px;"">
+              {safeMessage}
+            </div>
+
+            <a href=""mailto:{senderEmail}?subject=Re: {System.Net.WebUtility.HtmlEncode(subject)}""
+               style=""display:inline-block;background:#3b5bdb;color:#fff;padding:14px 28px;border-radius:50px;font-size:14px;font-weight:600;text-decoration:none;"">
+              Reply to {System.Net.WebUtility.HtmlEncode(senderName)} →
+            </a>
+          </td>
+        </tr>
+
+        <tr>
+          <td style=""background:#f8faff;padding:20px 48px;text-align:center;border-top:1px solid #e5e7eb;"">
+            <p style=""margin:0;font-size:12px;color:#9ca3af;"">© 2026 PulseX Healthcare Platform. All rights reserved.</p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>";
+        }
 
         private static string BuildOtpEmailHtml(string userName, string otp)
         {

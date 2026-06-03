@@ -7,9 +7,11 @@ import CommentsList from '../../components/AllComments/CommentsList';
 import ReportModal from '../../components/AllComments/ReportModal';
 import {
   addComment,
+  deleteComment,
   getAllComments,
   likeComment,
   replyToComment,
+  updateComment,
 } from '../../../../services/storyService';
 import { reportComment } from '../../../../services/reportService';
 import { getUserProfile } from '../../../../services/patientService';
@@ -29,6 +31,7 @@ const mapComment = (comment) => {
   const userName = comment.commenterName || comment.user || 'Unknown';
   return {
     id: comment.id,
+    userId: comment.userId ?? comment.commenterUserId ?? null,
     user: userName,
     initials: userName.charAt(0).toUpperCase(),
     avatar: resolveFileUrl(comment.commenterAvatar || comment.avatar || ''),
@@ -62,6 +65,24 @@ const addReplyInTree = (items, parentId, reply) =>
       return { ...item, replies: addReplyInTree(item.replies, parentId, reply) };
     }
 
+    return item;
+  });
+
+const deleteFromTree = (items, targetId) =>
+  items
+    .filter((item) => item.id !== targetId)
+    .map((item) =>
+      item.replies?.length
+        ? { ...item, replies: deleteFromTree(item.replies, targetId) }
+        : item
+    );
+
+const updateTextInTree = (items, targetId, newText) =>
+  items.map((item) => {
+    if (item.id === targetId) return { ...item, text: newText };
+    if (item.replies?.length) {
+      return { ...item, replies: updateTextInTree(item.replies, targetId, newText) };
+    }
     return item;
   });
 
@@ -102,6 +123,8 @@ const PatientAllComments = () => {
   const [replyText, setReplyText] = useState('');
   const [reportTarget, setReportTarget] = useState(null);
   const [likedIds, setLikedIds] = useState({});
+  const [editingId, setEditingId] = useState(null);
+  const [editText, setEditText] = useState('');
   const [toast, setToast] = useState({ visible: false, title: '', message: '' });
 
   const showToast = (title, message) => setToast({ visible: true, title, message });
@@ -186,6 +209,30 @@ const PatientAllComments = () => {
       showToast('Comment Posted', 'Your comment has been added.');
     } catch (err) {
       showToast('Comment Failed', err?.response?.data?.message || err?.message || 'Please try again.');
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    try {
+      await deleteComment(storyId, commentId);
+      setComments((prev) => deleteFromTree(prev, commentId));
+      setCommentsCount((prev) => Math.max(0, prev - 1));
+      showToast('Deleted', 'Comment removed.');
+    } catch (err) {
+      showToast('Delete Failed', err?.response?.data?.message || err?.message || 'Please try again.');
+    }
+  };
+
+  const handleEditComment = async (commentId) => {
+    if (!editText.trim()) return;
+    try {
+      await updateComment(storyId, commentId, { content: editText.trim() });
+      setComments((prev) => updateTextInTree(prev, commentId, editText.trim()));
+      setEditingId(null);
+      setEditText('');
+      showToast('Updated', 'Comment updated.');
+    } catch (err) {
+      showToast('Update Failed', err?.response?.data?.message || err?.message || 'Please try again.');
     }
   };
 
@@ -287,12 +334,20 @@ const PatientAllComments = () => {
           likedIds={likedIds}
           replyingTo={replyingTo}
           replyText={replyText}
+          editingId={editingId}
+          editText={editText}
+          currentUserId={user?.userId}
           onLike={handleLike}
           onReplyToggle={(idValue) => { setReplyingTo(replyingTo === idValue ? null : idValue); setReplyText(''); }}
           onReplyTextChange={(e) => setReplyText(e.target.value)}
           onReplyCancel={() => setReplyingTo(null)}
           onPostReply={handlePostReply}
           onReport={setReportTarget}
+          onDelete={handleDeleteComment}
+          onEditStart={(c) => { setEditingId(c.id); setEditText(c.text); }}
+          onEditTextChange={(e) => setEditText(e.target.value)}
+          onEditCancel={() => { setEditingId(null); setEditText(''); }}
+          onEditSave={handleEditComment}
           userAvatar={userAvatar}
           userInitials={userInitials}
         />

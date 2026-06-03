@@ -16,6 +16,7 @@ import { getUnreadInbox } from '../../../../services/messageService';
 import { ensureChatConnection, onChatEvent } from '../../../../services/chatRealtimeService';
 import { readProfilePhoto, subscribeProfilePhoto } from '../../../../utils/profilePhotoStorage';
 import { resolveFileUrl } from '../../../../utils/api';
+import { playMessageSound, playNotificationSound } from '../../../../utils/notificationSound';
 
 const formatDate = (d) =>
   d.toLocaleDateString('en-US', {
@@ -31,10 +32,21 @@ const formatTime = (d) =>
     minute: '2-digit',
   });
 
+// Backend serializes DateTime.UtcNow without a 'Z' suffix, so the browser
+// would otherwise interpret it as local time (Egypt UTC+2) and produce a
+// 2-3 hour drift on every relative-time calculation. Force-tag as UTC if
+// the string carries no timezone indicator.
+const parseUtcDate = (value) => {
+  if (!value) return null;
+  const s = String(value);
+  const normalized = s.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(s) ? s : `${s}Z`;
+  const d = new Date(normalized);
+  return Number.isNaN(d.getTime()) ? null : d;
+};
+
 const formatRelativeTime = (value) => {
-  if (!value) return '';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
+  const date = parseUtcDate(value);
+  if (!date) return '';
 
   const diffMs = Date.now() - date.getTime();
   const diffMinutes = Math.max(0, Math.floor(diffMs / 60000));
@@ -79,15 +91,31 @@ const mapNotification = (notification) => {
 
   return {
     id: notification.id ?? notification.Id,
+    type: notification.type ?? notification.Type ?? '',
     unread: !(notification.isRead ?? notification.IsRead),
     title: notification.title ?? notification.Title ?? 'Notification',
-    desc: notification.message ?? notification.Message ?? '',
+    desc: (notification.message ?? notification.Message ?? '').replace(/\?{2,}/g, '').trim(),
     time: formatRelativeTime(notification.createdAt ?? notification.CreatedAt),
     level: priority,
     patientId: notification.relatedPatientId ?? notification.RelatedPatientId,
     appointmentId: notification.relatedAppointmentId ?? notification.RelatedAppointmentId,
   };
 };
+
+const extractRating = (desc) => {
+  const m = desc.match(/rated you (\d)\/5/);
+  return m ? parseInt(m[1], 10) : 0;
+};
+
+const StarRow = ({ count }) => (
+  <span className="flex items-center gap-0.5 mt-1">
+    {[1, 2, 3, 4, 5].map((i) => (
+      <svg key={i} className={`w-3 h-3 ${i <= count ? 'text-amber-400' : 'text-gray-300 dark:text-gray-600'}`} fill="currentColor" viewBox="0 0 20 20">
+        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+      </svg>
+    ))}
+  </span>
+);
 
 const DoctorHeader = () => {
   const navigate = useNavigate();
@@ -104,6 +132,8 @@ const DoctorHeader = () => {
   const notifRef = useRef(null);
   const msgRef = useRef(null);
   const loadHeaderDataRef = useRef(null);
+  const prevUnreadNotifRef = useRef(null);
+  const prevUnreadMsgRef = useRef(null);
 
   const loadHeaderData = useCallback(async () => {
     const [profile, notificationResponse, inboxResponse] = await Promise.all([
@@ -121,14 +151,25 @@ const DoctorHeader = () => {
     const messageItems = Array.isArray(inboxResponse?.conversations)
       ? inboxResponse.conversations
       : [];
+    const totalUnreadMsg = messageItems.reduce(
+      (sum, m) => sum + (Number(m.unreadCount ?? m.UnreadCount) || 0),
+      0
+    );
+    if (prevUnreadMsgRef.current !== null && totalUnreadMsg > prevUnreadMsgRef.current) {
+      playMessageSound();
+    }
+    prevUnreadMsgRef.current = totalUnreadMsg;
     setMessages(messageItems.map(mapInboxItem));
 
     const notificationItems = pickArray(notificationResponse, 'notifications').map(mapNotification);
     setNotifications(notificationItems);
-    setUnreadNotifCount(
-      notificationResponse?.unreadCount ??
-      notificationItems.filter((n) => n.unread).length
-    );
+    const nextUnread = notificationResponse?.unreadCount ??
+      notificationItems.filter((n) => n.unread).length;
+    if (prevUnreadNotifRef.current !== null && nextUnread > prevUnreadNotifRef.current) {
+      playNotificationSound();
+    }
+    prevUnreadNotifRef.current = nextUnread;
+    setUnreadNotifCount(nextUnread);
   }, [user?.fullName]);
 
   // Keep ref in sync so SignalR handler always calls the latest version.
@@ -141,7 +182,7 @@ const DoctorHeader = () => {
 
   useEffect(() => {
     loadHeaderData();
-    const interval = window.setInterval(loadHeaderData, 30000);
+    const interval = window.setInterval(loadHeaderData, 15000);
     return () => window.clearInterval(interval);
   }, [loadHeaderData]);
 
@@ -155,6 +196,7 @@ const DoctorHeader = () => {
           const senderId = Number(msg?.senderId ?? msg?.SenderId);
           const currentUserId = Number(user?.userId);
           if (senderId && currentUserId && senderId !== currentUserId) {
+            playMessageSound();
             loadHeaderDataRef.current?.();
           }
         });
@@ -244,7 +286,7 @@ const DoctorHeader = () => {
             <HiOutlineEnvelope className="text-[18px] text-[#6b7280]" />
             {unreadMsg > 0 && (
               <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-[#00C950] text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white font-roboto">
-                {unreadMsg}
+                {unreadMsg > 9 ? '9+' : unreadMsg}
               </span>
             )}
           </button>
@@ -365,7 +407,7 @@ const DoctorHeader = () => {
             <HiOutlineBell className="text-[18px] text-[#6b7280]" />
             {unreadNotifCount > 0 && (
               <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-[#ef4444] text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white font-roboto">
-                {unreadNotifCount}
+                {unreadNotifCount > 9 ? '9+' : unreadNotifCount}
               </span>
             )}
           </button>
@@ -402,6 +444,7 @@ const DoctorHeader = () => {
                       {n.unread ? <span className="h-2.5 w-2.5 rounded-full bg-[#2563EB]" /> : null}
                     </div>
                     <p className="text-[11px] text-[#374151] dark:text-gray-300 mt-1 leading-4 font-roboto">{n.desc}</p>
+                    {n.type === 'NewRating' && <StarRow count={extractRating(n.desc)} />}
                     <div className="mt-1.5 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         {['Urgent', 'High'].includes(n.level) ? (

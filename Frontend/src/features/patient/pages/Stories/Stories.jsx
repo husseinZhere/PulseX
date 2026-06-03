@@ -53,7 +53,7 @@ const PatientStories = () => {
 
   return (
     <>
-      <main className="p-[24px] bg-[#FAFBFF] dark:bg-[#0B1120] rounded-[22px]">
+      <main className="p-[24px] bg-white dark:bg-[#111827] rounded-[22px]">
         <StoriesHeader />
 
         <aside className="sr-only">

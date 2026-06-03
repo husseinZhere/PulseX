@@ -3,6 +3,19 @@ import api from '../utils/api';
 export const getAdminDashboard = () =>
   api.get('/api/Admin/dashboard').then((r) => r.data);
 
+export const getAdminProfile = () =>
+  api.get('/api/Admin/profile').then((r) => r.data);
+
+export const uploadAdminProfilePicture = (file) => {
+  const form = new FormData();
+  form.append('file', file);
+  return api
+    .post('/api/Admin/profile/upload-picture', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    .then((r) => r.data);
+};
+
 export const getAllUsers = () =>
   api.get('/api/Admin/users').then((r) => r.data);
 

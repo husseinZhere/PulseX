@@ -1,10 +1,10 @@
 import {
   LuBookOpen,
   LuTrash2,
-  LuEye as LuEyeIcon,
   LuThumbsUp,
   LuMessageCircle,
   LuCalendarDays,
+  LuImage,
 } from 'react-icons/lu';
 
 const StoriesSection = ({ stories, navigate, setDeleteTarget }) => {
@@ -34,18 +34,27 @@ const StoriesSection = ({ stories, navigate, setDeleteTarget }) => {
                 key={story.id}
                 className="group flex flex-col sm:flex-row gap-4 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 hover:border-gray-200 hover:shadow-sm transition-all"
               >
-                <img
-                  src={story.image}
-                  alt={story.title}
-                  className="w-full h-40 sm:w-32 sm:h-24 rounded-xl object-cover shrink-0 cursor-pointer"
-                  onClick={() => navigate(`/patient/stories/${story.id}`)}
-                />
+                {story.image ? (
+                  <img
+                    src={story.image}
+                    alt={story.title}
+                    className="w-full h-40 sm:w-32 sm:h-24 rounded-xl object-cover shrink-0 cursor-pointer"
+                    onClick={() => navigate(`/patient/stories/${story.id}`, { state: { from: 'settings' } })}
+                  />
+                ) : (
+                  <div
+                    className="w-full h-40 sm:w-32 sm:h-24 rounded-xl shrink-0 cursor-pointer bg-gray-100 dark:bg-gray-800 flex items-center justify-center"
+                    onClick={() => navigate(`/patient/stories/${story.id}`, { state: { from: 'settings' } })}
+                  >
+                    <LuImage size={28} className="text-gray-300 dark:text-gray-600" />
+                  </div>
+                )}
 
                 <div className="flex-1 min-w-0 flex flex-col">
                   <div className="flex items-start justify-between gap-3">
                     <h3
                       className="font-bold text-black-main-text dark:text-[#E2E8F0] text-lg sm:text-base cursor-pointer hover:text-brand-main transition-colors line-clamp-1"
-                      onClick={() => navigate(`/patient/stories/${story.id}`)}
+                      onClick={() => navigate(`/patient/stories/${story.id}`, { state: { from: 'settings' } })}
                     >
                       {story.title}
                     </h3>
@@ -75,9 +84,6 @@ const StoriesSection = ({ stories, navigate, setDeleteTarget }) => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap items-center gap-2 sm:gap-3 text-[14px] text-[#4A5565] dark:text-gray-400">
                     <span className="flex items-center gap-1 min-w-0">
                       <LuCalendarDays size={12} /> {story.date}
-                    </span>
-                    <span className="flex items-center gap-1 min-w-0">
-                      <LuEyeIcon size={12} /> {story.views.toLocaleString()}
                     </span>
                     <span className="flex items-center gap-1 min-w-0">
                       <LuThumbsUp size={12} /> {story.likes}

@@ -32,7 +32,10 @@ phone: Yup.string()
   dateOfBirth: Yup.date()
     .nullable()
     .required(errorMsg("Date of birth is required"))
-    .max(new Date(), errorMsg("Invalid date")),
+    .max(
+      (() => { const d = new Date(); d.setFullYear(d.getFullYear() - 13); return d; })(),
+      errorMsg("You must be at least 13 years old to register")
+    ),
   
   gender: Yup.string()
     .required(errorMsg("Please select your gender")),

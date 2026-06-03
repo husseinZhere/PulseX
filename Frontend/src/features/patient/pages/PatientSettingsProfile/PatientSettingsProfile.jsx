@@ -9,7 +9,6 @@ import {
   checkReqs,
   formatWithUnit,
   getInitialFormFromPatient,
-  getStoriesWithFallback,
 } from '../../components/PatientSettingsProfile/constants';
 import AccountSettingsSection from '../../components/PatientSettingsProfile/AccountSettingsSection';
 import HealthInfoSection from '../../components/PatientSettingsProfile/HealthInfoSection';
@@ -25,7 +24,20 @@ import {
   uploadUserProfilePicture,
   updateAccountSettings,
 } from '../../../../services/patientService';
+import { getMyStories, deleteMyStory } from '../../../../services/storyService';
 import { resolveFileUrl } from '../../../../utils/api';
+
+const mapApiStory = (s) => ({
+  id: s.id,
+  title: s.title ?? 'Untitled Story',
+  tags: Array.isArray(s.tags) ? s.tags : [],
+  excerpt: s.snippet ?? '',
+  date: s.publishedAtFormatted ?? '',
+  views: s.viewsCount ?? 0,
+  likes: s.likesCount ?? 0,
+  comments: s.commentsCount ?? 0,
+  image: s.imageUrl ? resolveFileUrl(s.imageUrl) : null,
+});
 
 const PHOTO_UID_KEY = 'pulsex-profile-photo-patient-uid';
 
@@ -47,9 +59,9 @@ export default function PatientSettingsProfile() {
     }
   }, []);
 
-  const [toast, setToast] = useState({ visible: false, title: '', msg: '' });
-  const showToast = (title, msg) => {
-    setToast({ visible: true, title, msg });
+  const [toast, setToast] = useState({ visible: false, title: '', msg: '', type: 'success' });
+  const showToast = (title, msg, type = 'success') => {
+    setToast({ visible: true, title, msg, type });
     setTimeout(() => setToast(t => ({ ...t, visible: false })), 3500);
   };
 
@@ -59,6 +71,12 @@ export default function PatientSettingsProfile() {
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('File Too Large', 'Photo must be under 5MB.', 'error');
+      e.target.value = '';
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = () => {
@@ -153,23 +171,37 @@ export default function PatientSettingsProfile() {
     }
   };
 
-  const [emailNotif, setEmailNotif] = useState(Boolean(patient?.settings?.emailNotifications ?? true));
   const [darkMode, setDarkMode] = useState(Boolean(patient?.settings?.darkMode ?? false));
 
-  const [stories, setStories] = useState(() => getStoriesWithFallback(patient));
+  const [stories, setStories] = useState([]);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   useEffect(() => {
-    // Only update auxiliary data from patient context, don't overwrite the main form which is managed by getUserProfile.
-    setStories(getStoriesWithFallback(patient));
-    setEmailNotif(Boolean(patient?.settings?.emailNotifications ?? true));
     setDarkMode(Boolean(patient?.settings?.darkMode ?? false));
   }, [patient]);
 
-  const handleDeleteStory = () => {
-    setStories(s => s.filter(x => x.id !== deleteTarget));
-    setDeleteTarget(null);
-    showToast('Story Deleted', 'Your story has been removed successfully.');
+  useEffect(() => {
+    let ignore = false;
+    getMyStories()
+      .then((data) => {
+        if (ignore) return;
+        const list = Array.isArray(data) ? data : (data?.stories ?? []);
+        setStories(list.map(mapApiStory));
+      })
+      .catch((err) => console.error('Failed to load stories', err));
+    return () => { ignore = true; };
+  }, []);
+
+  const handleDeleteStory = async () => {
+    try {
+      await deleteMyStory(deleteTarget);
+      setStories(s => s.filter(x => x.id !== deleteTarget));
+      showToast('Story Deleted', 'Your story has been removed successfully.');
+    } catch (err) {
+      showToast('Delete Failed', err?.response?.data?.message || 'Please try again.');
+    } finally {
+      setDeleteTarget(null);
+    }
   };
 
   const v = patient?.vitals;
@@ -195,7 +227,7 @@ export default function PatientSettingsProfile() {
         visible={toast.visible}
         title={toast.title}
         message={toast.msg}
-        type="success"
+        type={toast.type}
         onClose={() => setToast(t => ({ ...t, visible: false }))}
       />
 
@@ -225,8 +257,6 @@ export default function PatientSettingsProfile() {
           <AccountSettingsSection
             setPwError={setPwError}
             setPwModal={setPwModal}
-            emailNotif={emailNotif}
-            setEmailNotif={setEmailNotif}
           />
         </aside>
       </main>

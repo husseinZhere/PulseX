@@ -41,6 +41,50 @@ const inputBase = 'w-full px-4 py-3.5 rounded-xl border-[1.5px] outline-none tra
 const inputNormal = 'border-gray-200 dark:border-gray-600 focus:border-[#3B5BFE] focus:ring-2 focus:ring-[#3B5BFE]/15';
 const inputError = 'border-red-400 dark:border-red-500 bg-red-50/40 dark:bg-red-900/10 focus:border-red-400 focus:ring-2 focus:ring-red-400/15';
 
+const ConfirmPayModal = ({ method, doctorName, date, time, price, onConfirm, onCancel }) => (
+  <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div className="bg-white dark:bg-[#111827] rounded-[28px] p-8 max-w-sm w-full shadow-2xl text-center">
+      <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-5">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3B5BFE" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" />
+        </svg>
+      </div>
+      <h3 className="text-[18px] font-bold text-slate-800 dark:text-[#E2E8F0] mb-2">
+        {method === 'cash' ? 'Confirm Booking?' : 'Confirm Payment?'}
+      </h3>
+      <p className="text-sm text-slate-500 dark:text-gray-400 mb-5">
+        {method === 'cash'
+          ? `Book appointment with ${doctorName} on ${date} at ${to12h(time)}. Pay at clinic.`
+          : `Pay $${price}.00 for appointment with ${doctorName} on ${date} at ${to12h(time)}.`}
+      </p>
+      <div className="flex gap-3">
+        <button
+          onClick={onCancel}
+          className="flex-1 py-3 rounded-2xl border border-gray-200 dark:border-gray-600 text-slate-600 dark:text-gray-300 font-semibold text-sm hover:bg-gray-50 dark:hover:bg-[#1E293B] transition-all cursor-pointer"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={onConfirm}
+          className="flex-1 py-3 rounded-2xl bg-[#3B5BFE] text-white font-bold text-sm hover:bg-[#252CBF] transition-all shadow-[0_4px_12px_rgba(59,91,254,0.30)] cursor-pointer"
+        >
+          {method === 'cash' ? 'Confirm' : 'Pay Now'}
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
+const to12h = (t) => {
+  if (!t) return t;
+  const [hStr, mStr = '00'] = t.split(':');
+  const h = parseInt(hStr, 10);
+  if (Number.isNaN(h)) return t;
+  const period = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  return `${h12}:${mStr} ${period}`;
+};
+
 const PatientPayment = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -48,6 +92,7 @@ const PatientPayment = () => {
   const [success, setSuccess] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState('');
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const [cardHolder, setCardHolder] = useState('');
   const [cardNumber, setCardNumber] = useState('');
@@ -91,12 +136,17 @@ const PatientPayment = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handlePay = async () => {
+  const handlePayClick = () => {
     if (!bookingData.doctorId) {
       setError('Missing booking data. Please re-select a doctor.');
       return;
     }
     if (!validateCard()) return;
+    setShowConfirm(true);
+  };
+
+  const handleConfirmedPay = async () => {
+    setShowConfirm(false);
     setProcessing(true);
     setError('');
     try {
@@ -142,6 +192,17 @@ const PatientPayment = () => {
 
   return (
     <section className="max-w-6xl mx-auto" style={PAYMENT_CSS_VARS}>
+      {showConfirm && (
+        <ConfirmPayModal
+          method={method}
+          doctorName={bookingData.doctorName}
+          date={bookingData.date}
+          time={bookingData.time}
+          price={bookingData.price}
+          onConfirm={handleConfirmedPay}
+          onCancel={() => setShowConfirm(false)}
+        />
+      )}
       <header className="flex items-center gap-3 mb-10">
         <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#333CF5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <rect x="1" y="4" width="22" height="16" rx="2" />
@@ -262,10 +323,27 @@ const PatientPayment = () => {
             <h2 className="text-[17px] font-bold text-black-main-text dark:text-[#E2E8F0] mb-7">Booking Summary</h2>
 
             <div className="space-y-5">
-              <SummaryRow icon={<HiOutlineUser className="text-blue-500" />} label="Doctor" iconBg="bg-blue-50 dark:bg-blue-900/25">
-                <p className="font-bold text-slate-800 dark:text-[#E2E8F0] text-[14px]">{bookingData.doctorName}</p>
-                {bookingData.doctorTitle && <p className="text-[12px] text-slate-400 dark:text-gray-400">{bookingData.doctorTitle}</p>}
-              </SummaryRow>
+              <div className="flex items-center gap-4">
+                {bookingData.doctorImg ? (
+                  <img
+                    src={bookingData.doctorImg}
+                    alt={bookingData.doctorName}
+                    className="h-12 w-12 rounded-full object-cover shrink-0 border border-gray-200 dark:border-gray-700"
+                    onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }}
+                  />
+                ) : null}
+                <div
+                  className="h-12 w-12 rounded-full shrink-0 bg-blue-50 dark:bg-blue-900/25 items-center justify-center text-blue-500 dark:text-blue-300 text-[16px] font-bold"
+                  style={{ display: bookingData.doctorImg ? 'none' : 'flex' }}
+                >
+                  {(String(bookingData.doctorName || 'D').replace(/^dr\.?\s/i, '').trim()[0] || 'D').toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-gray-400">Doctor</p>
+                  <p className="font-bold text-slate-800 dark:text-[#E2E8F0] text-[14px] truncate">{bookingData.doctorName}</p>
+                  {bookingData.doctorTitle && <p className="text-[12px] text-slate-400 dark:text-gray-400 truncate">{bookingData.doctorTitle}</p>}
+                </div>
+              </div>
 
               <div className="h-px bg-slate-100 dark:bg-gray-700" />
 
@@ -274,7 +352,7 @@ const PatientPayment = () => {
               </SummaryRow>
 
               <SummaryRow icon={<HiOutlineClock className="text-slate-500" />} label="Time">
-                <p className="font-bold text-slate-800 dark:text-[#E2E8F0] text-[14px]">{bookingData.time}</p>
+                <p className="font-bold text-slate-800 dark:text-[#E2E8F0] text-[14px]">{to12h(bookingData.time)}</p>
               </SummaryRow>
 
               <SummaryRow icon={
@@ -300,7 +378,7 @@ const PatientPayment = () => {
               )}
 
               <button
-                onClick={handlePay}
+                onClick={handlePayClick}
                 disabled={processing}
                 className="w-full py-4 cursor-pointer bg-[#3B5BFE] text-white rounded-2xl font-bold text-[15px] hover:bg-[#252CBF] transition-all shadow-[0_8px_20px_rgba(59,91,254,0.30)] dark:shadow-[0_8px_20px_rgba(37,44,191,0.40)] active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
               >

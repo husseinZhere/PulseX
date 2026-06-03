@@ -19,6 +19,7 @@ namespace PulseX.API.Services
         private readonly IPatientHealthInfoRepository _patientHealthInfoRepository;
         private readonly IMedicalRecordRepository _medicalRecordRepository;
         private readonly IRiskAssessmentRepository _riskAssessmentRepository;
+        private readonly INotificationRepository _notificationRepository;
         private readonly IMapper _mapper;
 
         private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
@@ -38,6 +39,7 @@ namespace PulseX.API.Services
             IPatientHealthInfoRepository patientHealthInfoRepository,
             IMedicalRecordRepository medicalRecordRepository,
             IRiskAssessmentRepository riskAssessmentRepository,
+            INotificationRepository notificationRepository,
             IMapper mapper)
         {
             _doctorRepository = doctorRepository;
@@ -49,6 +51,7 @@ namespace PulseX.API.Services
             _patientHealthInfoRepository = patientHealthInfoRepository;
             _medicalRecordRepository = medicalRecordRepository;
             _riskAssessmentRepository = riskAssessmentRepository;
+            _notificationRepository = notificationRepository;
             _mapper = mapper;
         }
 
@@ -601,16 +604,35 @@ namespace PulseX.API.Services
                 throw new Exception("This appointment does not belong to you");
             }
 
-            // Check if appointment is completed
-            if (appointment.Status != AppointmentStatus.Completed)
+            // Check if appointment is completed (or effectively completed — past its 24-hour window)
+            var nowEgypt = DateTime.UtcNow.AddHours(2);
+            bool isEffectivelyCompleted = appointment.Status == AppointmentStatus.Completed
+                || (appointment.Status == AppointmentStatus.Scheduled && nowEgypt > appointment.AppointmentDate.AddHours(24));
+
+            if (!isEffectivelyCompleted)
             {
                 throw new Exception("You can only rate completed appointments");
+            }
+
+            // Persist auto-completion so future calls are consistent
+            if (appointment.Status == AppointmentStatus.Scheduled)
+            {
+                appointment.Status = AppointmentStatus.Completed;
+                await _appointmentRepository.UpdateAsync(appointment);
             }
 
             // Check if already rated
             if (await _ratingRepository.HasRatedAppointmentAsync(dto.AppointmentId))
             {
                 throw new Exception("You have already rated this appointment");
+            }
+
+            // Enforce one-review-per-doctor across all the patient's appointments.
+            // Even if the patient has multiple appointments with the same doctor,
+            // they can only submit a single review for that doctor.
+            if (await _ratingRepository.HasPatientRatedDoctorAsync(patient.Id, appointment.DoctorId))
+            {
+                throw new Exception("You have already reviewed this doctor");
             }
 
             // Create rating
@@ -633,6 +655,31 @@ namespace PulseX.API.Services
                 doctor.TotalRatings = allRatings.Count();
                 doctor.AverageRating = (decimal)allRatings.Average(r => r.Rating);
                 await _doctorRepository.UpdateAsync(doctor);
+            }
+
+            // Notify the doctor so their bell + sound fire on the next poll.
+            try
+            {
+                var reviewSnippet = string.IsNullOrWhiteSpace(dto.Review)
+                    ? ""
+                    : $" — \"{dto.Review.Substring(0, Math.Min(80, dto.Review.Length))}{(dto.Review.Length > 80 ? "..." : "")}\"";
+
+                await _notificationRepository.AddAsync(new DoctorNotification
+                {
+                    DoctorId = appointment.DoctorId,
+                    Type = "NewRating",
+                    Priority = "Normal",
+                    Title = "New Patient Rating",
+                    Message = $"{patient.User.FullName} rated you {dto.Rating}/5{reviewSnippet}",
+                    RelatedPatientId = patient.Id,
+                    RelatedAppointmentId = dto.AppointmentId,
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+            catch
+            {
+                // Notification failure must not block the rating save.
             }
 
             return new DoctorRatingDto
@@ -783,29 +830,44 @@ namespace PulseX.API.Services
 
             var appointments = await _appointmentRepository.GetByPatientIdAsync(patient.Id);
             var pendingRatings = new List<PendingRatingDto>();
+            var nowEgypt = DateTime.UtcNow.AddHours(2);
 
             foreach (var appointment in appointments)
             {
-                // Only completed appointments that haven't been rated
-                if (appointment.Status == AppointmentStatus.Completed)
+                // Include Completed appointments AND Scheduled ones whose 24-hour window has closed
+                bool isEffectivelyCompleted = appointment.Status == AppointmentStatus.Completed
+                    || (appointment.Status == AppointmentStatus.Scheduled && nowEgypt > appointment.AppointmentDate.AddHours(24));
+
+                if (!isEffectivelyCompleted) continue;
+
+                // Persist auto-completion so SubmitRatingAsync won't reject it
+                if (appointment.Status == AppointmentStatus.Scheduled)
                 {
-                    var alreadyRated = await _ratingRepository.HasRatedAppointmentAsync(appointment.Id);
-                    if (!alreadyRated)
+                    appointment.Status = AppointmentStatus.Completed;
+                    await _appointmentRepository.UpdateAsync(appointment);
+                }
+
+                var alreadyRated = await _ratingRepository.HasRatedAppointmentAsync(appointment.Id);
+                // Also enforce one-review-per-doctor: if the patient already
+                // rated this doctor (from a previous appointment), don't surface
+                // another pending rating for the same doctor.
+                var ratedThisDoctorBefore = await _ratingRepository
+                    .HasPatientRatedDoctorAsync(patient.Id, appointment.DoctorId);
+                if (!alreadyRated && !ratedThisDoctorBefore)
+                {
+                    var doctor = await _doctorRepository.GetByIdAsync(appointment.DoctorId);
+                    if (doctor != null)
                     {
-                        var doctor = await _doctorRepository.GetByIdAsync(appointment.DoctorId);
-                        if (doctor != null)
+                        pendingRatings.Add(new PendingRatingDto
                         {
-                            pendingRatings.Add(new PendingRatingDto
-                            {
-                                AppointmentId = appointment.Id,
-                                DoctorId = doctor.Id,
-                                DoctorName = doctor.User!.FullName,
-                                DoctorSpecialization = doctor.Specialization,
-                                DoctorProfilePicture = doctor.ProfilePicture,
-                                AppointmentDate = appointment.AppointmentDate,
-                                CompletedDate = appointment.UpdatedAt ?? appointment.AppointmentDate
-                            });
-                        }
+                            AppointmentId = appointment.Id,
+                            DoctorId = doctor.Id,
+                            DoctorName = doctor.User!.FullName,
+                            DoctorSpecialization = doctor.Specialization,
+                            DoctorProfilePicture = doctor.ProfilePicture,
+                            AppointmentDate = appointment.AppointmentDate,
+                            CompletedDate = appointment.UpdatedAt ?? appointment.AppointmentDate
+                        });
                     }
                 }
             }

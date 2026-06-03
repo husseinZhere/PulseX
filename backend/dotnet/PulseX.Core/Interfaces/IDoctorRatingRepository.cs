@@ -9,5 +9,6 @@ namespace PulseX.Core.Interfaces
         Task<IEnumerable<DoctorRating>> GetByDoctorIdAsync(int doctorId);
         Task<DoctorRating> AddAsync(DoctorRating rating);
         Task<bool> HasRatedAppointmentAsync(int appointmentId);
+        Task<bool> HasPatientRatedDoctorAsync(int patientId, int doctorId);
     }
 }

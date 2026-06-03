@@ -62,10 +62,17 @@ const Prescription = () => {
         const patients = await getDoctorPatients();
         const list = Array.isArray(patients) ? patients : (patients?.items || []);
         if (ignore) return;
-        const options = list.map((p) => ({
-          id: String(firstNonEmpty(p.patientId, p.PatientId, p.id, p.Id, '')),
-          name: firstNonEmpty(p.patientName, p.PatientName, p.fullName, p.FullName, p.name, p.Name, ''),
-        }));
+        const options = list.map((p) => {
+          const name = firstNonEmpty(p.patientName, p.PatientName, p.fullName, p.FullName, p.name, p.Name, '');
+          const rawAvatar = firstNonEmpty(p.profilePicture, p.ProfilePicture, p.avatar, p.Avatar, '');
+          return {
+            id: String(firstNonEmpty(p.patientId, p.PatientId, p.id, p.Id, '')),
+            name,
+            avatar: rawAvatar
+              ? resolveFileUrl(rawAvatar)
+              : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=E2E8F0&color=334155`,
+          };
+        });
         setPatientOptions(options);
         
         if (patientIdParam) {

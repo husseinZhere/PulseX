@@ -25,6 +25,10 @@ namespace PulseX.Core.DTOs.Notification
         public string? IconType { get; set; } // success, warning, alert, info
         public string? StatusColor { get; set; } // green, yellow, orange, red
         
+        // Actor who triggered this notification (populated for story interactions)
+        public string? ActorName { get; set; }
+        public string? ActorAvatar { get; set; }
+
         public bool IsRead { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? ReadAt { get; set; }

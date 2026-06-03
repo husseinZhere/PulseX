@@ -9,9 +9,12 @@ export const getDoctorProfilePublic = (doctorId) =>
 export const getDoctorProfileForPatient = (doctorId) =>
   api.get(`/api/DoctorBooking/doctors/${doctorId}/profile`).then((r) => r.data);
 
+// Use the DoctorSchedule endpoint — it returns availableTimes + bookedTimes with
+// correct booked-slot detection. The older DoctorBooking/slots endpoint mishandles
+// the Egypt-local AppointmentDate and fails to flag booked slots (see CLAUDE.md).
 export const getAvailableSlots = (doctorId, date) =>
   api
-    .get(`/api/DoctorBooking/doctors/${doctorId}/slots`, { params: { date } })
+    .get(`/api/doctorschedule/available/${doctorId}`, { params: { date } })
     .then((r) => r.data);
 
 export const canChatWithDoctor = (doctorId) =>

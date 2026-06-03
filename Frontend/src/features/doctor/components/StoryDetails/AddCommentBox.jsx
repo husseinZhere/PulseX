@@ -3,6 +3,7 @@ import Avatar from './Avatar';
 
 const AddCommentBox = ({
   storyAuthorImg,
+  currentUserInitials = 'D',
   comment,
   onChange,
   onCancel,
@@ -11,7 +12,7 @@ const AddCommentBox = ({
   return (
     <section className="bg-[#EFF6FF] dark:bg-[#1E293B] rounded-2xl p-5 border border-[#BEDBFF] shadow-sm dark:shadow-none transition-all animate-in fade-in slide-in-from-top-2" aria-label="Add comment">
       <div className="flex items-start gap-3">
-        <Avatar img={storyAuthorImg} initials="Y" size="w-9 h-9" />
+        <Avatar img={storyAuthorImg} initials={currentUserInitials} size="w-9 h-9" />
         <div className="flex-1 bg-[#FFFFFF] dark:bg-[#111827] rounded-xl px-4 py-3 min-h-[80px]">
           <textarea
             rows={2} value={comment}

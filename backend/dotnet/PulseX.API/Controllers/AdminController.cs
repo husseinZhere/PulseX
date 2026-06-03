@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PulseX.API.Services;
 using PulseX.Core.DTOs.Admin;
+using PulseX.Core.Interfaces;
 using System.Security.Claims;
 
 namespace PulseX.API.Controllers
@@ -13,17 +14,92 @@ namespace PulseX.API.Controllers
     {
         private readonly AdminService _adminService;
         private readonly IWebHostEnvironment _environment;
+        private readonly UserService _userService;
+        private readonly IDoctorRepository _doctorRepository;
 
-        public AdminController(AdminService adminService, IWebHostEnvironment environment)
+        public AdminController(AdminService adminService, IWebHostEnvironment environment, UserService userService, IDoctorRepository doctorRepository)
         {
             _adminService = adminService;
             _environment = environment;
+            _userService = userService;
+            _doctorRepository = doctorRepository;
+        }
+
+        [HttpPost("seed-ratings")]
+        public async Task<IActionResult> SeedDoctorRatings()
+        {
+            var presets = new[] {
+                (4.8m, 124), (4.5m, 89), (4.7m, 203), (4.3m, 67),
+                (4.9m, 312), (4.6m, 158), (4.4m, 95),  (4.2m, 44),
+            };
+
+            var doctors = (await _doctorRepository.GetAllAsync()).ToList();
+            for (int i = 0; i < doctors.Count; i++)
+            {
+                var (avg, total) = presets[i % presets.Length];
+                doctors[i].AverageRating = avg;
+                doctors[i].TotalRatings  = total;
+                await _doctorRepository.UpdateAsync(doctors[i]);
+            }
+            return Ok(new { message = $"Seeded ratings for {doctors.Count} doctor(s)." });
         }
 
         private int GetUserId()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             return int.Parse(userIdClaim!);
+        }
+
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetAdminProfile()
+        {
+            try
+            {
+                var userId = GetUserId();
+                var profile = await _userService.GetProfileAsync(userId);
+                return Ok(profile);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("profile/upload-picture")]
+        public async Task<IActionResult> UploadAdminProfilePicture([FromForm] IFormFile file)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                    return BadRequest(new { message = "No file uploaded" });
+
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                if (!allowedExtensions.Contains(extension))
+                    return BadRequest(new { message = "Invalid file type. Only JPG, PNG, and GIF are allowed." });
+
+                if (file.Length > 5 * 1024 * 1024)
+                    return BadRequest(new { message = "File size must not exceed 5MB" });
+
+                var userId = GetUserId();
+                var fileName = $"admin_{userId}_{DateTime.Now:yyyyMMddHHmmss}{extension}";
+                var webRoot = _environment.WebRootPath ?? Path.Combine(_environment.ContentRootPath, "wwwroot");
+                var uploadsFolder = Path.Combine(webRoot, "uploads", "profile-pictures");
+                Directory.CreateDirectory(uploadsFolder);
+
+                var filePath = Path.Combine(uploadsFolder, fileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                    await file.CopyToAsync(stream);
+
+                var fileUrl = $"/uploads/profile-pictures/{fileName}";
+                await _userService.UpdateProfilePictureAsync(userId, fileUrl);
+
+                return Ok(new { message = "Profile picture uploaded successfully", profilePicture = fileUrl });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPost("doctors/create")]

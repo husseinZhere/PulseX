@@ -140,7 +140,7 @@ const PrescriptionDetail = () => {
 
   if (error || !data) {
     return (
-      <main className="min-h-screen bg-[#FAFBFF] dark:bg-[#0B1120] rounded-[22px] p-4 sm:p-6">
+      <main className="min-h-screen bg-white dark:bg-[#111827] rounded-[22px] p-4 sm:p-6">
         <section className="rounded-2xl border border-[#FECACA] bg-[#FEF2F2] p-6">
           <h1 className="text-[20px] font-bold text-[#991B1B]">Unable to load prescription</h1>
           <p className="mt-2 text-[15px] text-[#B91C1C]">{error || 'Prescription not found.'}</p>
@@ -157,7 +157,7 @@ const PrescriptionDetail = () => {
   }
 
   return (
-    <main className="min-h-screen bg-[#FAFBFF] dark:bg-[#0B1120] rounded-[22px] p-4 sm:p-6">
+    <main className="min-h-screen bg-white dark:bg-[#111827] rounded-[22px] p-4 sm:p-6">
       <h1 className="sr-only">Prescription Details</h1>
 
       <article className="rounded-[24px] overflow-hidden mx-auto w-full">

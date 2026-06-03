@@ -1,65 +1,42 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import FullVideoScreen from './FullVideoScreen';
+import JitsiVideoScreen from '../../../../components/VideoCall/JitsiVideoScreen';
 import MinimizeModal from './MinimizeModal';
 import FloatingCallWindow from './FloatingCallWindow';
 import EndCallModal from './EndCallModal';
 import useVideoCall from '../../../../hooks/useVideoCall';
+import { useAuth } from '../../../../context/AuthContext';
 
 const VideoCallContainer = ({ isOpen, onClose, doctor, appointmentId, asInitiator = true, autoStart = false }) => {
   const [isMinimized, setIsMinimized] = useState(false);
   const [showMinimizeModal, setShowMinimizeModal] = useState(false);
   const [showEndCallModal, setShowEndCallModal] = useState(false);
-  const [isSpeakerOn, setIsSpeakerOn] = useState(true);
   const [duration, setDuration] = useState(0);
   const startRequestedRef = useRef(false);
+  const { user } = useAuth();
 
-  const {
-    state,
-    localStream,
-    remoteStream,
-    mediaState,
-    startCall,
-    acceptIncoming,
-    endCall,
-    toggleVideo,
-    toggleAudio,
-  } = useVideoCall();
-
-  const isMuted = !mediaState.audio;
-  const isVideoOff = !mediaState.video;
+  const { state, startCall, acceptIncoming, endCall } = useVideoCall();
 
   useEffect(() => {
     if (!isOpen || !appointmentId) {
       startRequestedRef.current = false;
       return;
     }
-
-    if (startRequestedRef.current) {
-      return;
-    }
-
-    if (state.status !== 'idle' && state.status !== 'ringing') {
-      return;
-    }
+    if (startRequestedRef.current) return;
+    if (state.status !== 'idle' && state.status !== 'ringing') return;
 
     startRequestedRef.current = true;
 
     if (autoStart) {
-      acceptIncoming(appointmentId).catch(() => {
-        startRequestedRef.current = false;
-      });
+      acceptIncoming(appointmentId).catch(() => { startRequestedRef.current = false; });
       return;
     }
-
-    startCall({ appointmentId, asInitiator }).catch(() => {
-      startRequestedRef.current = false;
-    });
+    startCall({ appointmentId, asInitiator }).catch(() => { startRequestedRef.current = false; });
   }, [isOpen, appointmentId, asInitiator, autoStart, state.status, startCall, acceptIncoming]);
 
   useEffect(() => {
     let interval;
-    if (isOpen && state.status === 'connected') {
+    if (isOpen && (state.status === 'connected' || state.status === 'connecting')) {
       interval = setInterval(() => setDuration((prev) => prev + 1), 1000);
     } else if (!isOpen) {
       setDuration(0);
@@ -73,13 +50,6 @@ const VideoCallContainer = ({ isOpen, onClose, doctor, appointmentId, asInitiato
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const resetLocalCallState = () => {
-    setIsMinimized(false);
-    setShowMinimizeModal(false);
-    setShowEndCallModal(false);
-    setIsSpeakerOn(true);
-  };
-
   const handleRequestEndCall = () => {
     setShowMinimizeModal(false);
     setShowEndCallModal(true);
@@ -88,32 +58,28 @@ const VideoCallContainer = ({ isOpen, onClose, doctor, appointmentId, asInitiato
   const handleConfirmEndCall = async () => {
     await endCall();
     startRequestedRef.current = false;
-    resetLocalCallState();
+    setIsMinimized(false);
+    setShowMinimizeModal(false);
+    setShowEndCallModal(false);
     onClose();
   };
 
   if (!isOpen) return null;
 
+  const displayName = user?.fullName || 'Patient';
+
   return (
     <>
       <AnimatePresence>
         {isOpen && !isMinimized && (
-          <FullVideoScreen
-            doctor={doctor}
-            isMuted={isMuted}
-            setIsMuted={() => toggleAudio()}
-            isVideoOff={isVideoOff}
-            setIsVideoOff={() => toggleVideo()}
-            isSpeakerOn={isSpeakerOn}
-            setIsSpeakerOn={setIsSpeakerOn}
+          <JitsiVideoScreen
+            appointmentId={appointmentId}
+            displayName={displayName}
+            callStatus={state.status}
+            errorMessage={state.error}
             onBack={() => setShowMinimizeModal(true)}
             onEndCall={handleRequestEndCall}
             duration={formatTime(duration)}
-            localStream={localStream}
-            remoteStream={remoteStream}
-            callStatus={state.status}
-            connectionQuality={state.connectionQuality}
-            errorMessage={state.error}
           />
         )}
       </AnimatePresence>
@@ -141,10 +107,10 @@ const VideoCallContainer = ({ isOpen, onClose, doctor, appointmentId, asInitiato
         <FloatingCallWindow
           doctor={doctor}
           duration={formatTime(duration)}
-          isMuted={isMuted}
-          onToggleMute={() => toggleAudio()}
-          isSpeakerOn={isSpeakerOn}
-          onToggleSpeaker={() => setIsSpeakerOn((prev) => !prev)}
+          isMuted={false}
+          onToggleMute={() => {}}
+          isSpeakerOn={true}
+          onToggleSpeaker={() => {}}
           onExpand={() => setIsMinimized(false)}
           onEndCall={handleRequestEndCall}
         />

@@ -13,7 +13,7 @@ const MessagesList = ({ messages, doctorImg, doctorName, bottomRef }) => {
                   className="w-8 h-8 rounded-full object-cover shrink-0 mt-0.5"
                 />
                 <div>
-                  <div className="bg-white dark:bg-[#111827] rounded-tl-sm rounded-tr-3xl rounded-bl-3xl rounded-br-3xl shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] px-4 py-4">
+                  <div className="bg-white dark:bg-[#111827] border border-gray-100 dark:border-gray-800 rounded-tl-sm rounded-tr-3xl rounded-bl-3xl rounded-br-3xl shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] px-4 py-4">
                     {msg.type === 'text'
                       ? <p className="text-[14px] text-black-main-text dark:text-[#E2E8F0] font-normal leading-5">{msg.text}</p>
                       : <img src={msg.text} alt="Attached image" className="max-w-[200px] rounded-lg" />

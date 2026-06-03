@@ -52,6 +52,16 @@ const MethodBadge = ({ isOnline, label }) => (
   </span>
 );
 
+const to12h = (t) => {
+  if (!t) return t;
+  const [hStr, mStr = '00'] = t.split(':');
+  const h = parseInt(hStr, 10);
+  if (Number.isNaN(h)) return t;
+  const period = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  return `${h12}:${mStr} ${period}`;
+};
+
 const AppointmentsList = ({ list, activeTab, onCancel }) => {
   return (
     <section className="flex flex-col gap-4" aria-label="Appointments list">
@@ -80,7 +90,7 @@ const AppointmentsList = ({ list, activeTab, onCancel }) => {
                 {/* Date & Time */}
                 <span className="inline-flex items-center gap-1.5 text-[13px] text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-[#1E293B] px-3 py-1.5 rounded-lg shrink-0">
                   <HiOutlineCalendarDays className="text-[14px]" />
-                  {app.date} &ndash; {app.time}
+                  {app.date} &ndash; {to12h(app.time)}
                 </span>
 
                 {/* Payment method badge */}

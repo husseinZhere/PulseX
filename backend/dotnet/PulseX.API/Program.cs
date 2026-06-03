@@ -178,7 +178,22 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// 11. Seed default admin account
+// 11. Run database migrations then seed default admin account
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var db = services.GetRequiredService<ApplicationDbContext>();
+        db.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Database migration failed on startup.");
+    }
+}
+
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -215,7 +230,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "PulseX API V1"));
 }
 
-app.UseHttpsRedirection();
+// HTTPS redirect disabled for MonsterASP.NET shared hosting (handled by reverse proxy)
+// app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 
 // Serve uploaded files from ContentRootPath/uploads (works even when wwwroot doesn't exist)

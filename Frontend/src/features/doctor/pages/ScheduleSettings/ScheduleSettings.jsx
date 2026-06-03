@@ -8,6 +8,7 @@ import {
   getMySchedule,
   saveWeeklySchedule,
   addSingleSlot,
+  deleteSlot,
 } from '../../../../services/scheduleService';
 
 // 0=Sunday … 6=Saturday
@@ -52,46 +53,52 @@ const ScheduleSettings = () => {
     setDraftSlot((prev) => ({ ...prev, date: selectedDate }));
   }, [selectedDate]);
 
+  // Build local state from a schedule summary (used on load + after add/delete).
+  // Single slots keep their slot id so they can be deleted individually.
+  const applySchedule = (schedule) => {
+    if (!schedule) return;
+
+    if (Array.isArray(schedule.weeklySlots)) {
+      const weekly = { ...INITIAL_WEEKLY };
+      schedule.weeklySlots.forEach((s) => {
+        if (s.dayOfWeek != null) {
+          weekly[s.dayOfWeek] = {
+            startTime: (s.startTime || '').slice(0, 5),
+            endTime: (s.endTime || '').slice(0, 5),
+          };
+        }
+      });
+      setWeeklySchedule(weekly);
+    }
+
+    if (Array.isArray(schedule.singleSlots)) {
+      const map = {};
+      schedule.singleSlots.forEach((s) => {
+        if (!s.slotDate) return;
+        const iso = s.slotDate.slice(0, 10);
+        if (!map[iso]) map[iso] = [];
+        const t = (s.startTime || '').slice(0, 5);
+        if (t) map[iso].push({ id: s.id ?? s.slotId, time: t });
+      });
+      Object.values(map).forEach((arr) => arr.sort((a, b) => a.time.localeCompare(b.time)));
+      setSlotsByDate(map);
+    }
+  };
+
   useEffect(() => {
     let ignore = false;
     const load = async () => {
       try {
         const schedule = await getMySchedule();
         if (ignore || !schedule) return;
-
-        // Weekly recurring slots
-        if (Array.isArray(schedule.weeklySlots)) {
-          const weekly = { ...INITIAL_WEEKLY };
-          schedule.weeklySlots.forEach((s) => {
-            if (s.dayOfWeek != null) {
-              weekly[s.dayOfWeek] = {
-                startTime: (s.startTime || '').slice(0, 5),
-                endTime: (s.endTime || '').slice(0, 5),
-              };
-            }
-          });
-          setWeeklySchedule(weekly);
-        }
-
-        // Single slots keyed by ISO date
-        if (Array.isArray(schedule.singleSlots)) {
-          const map = {};
-          schedule.singleSlots.forEach((s) => {
-            if (!s.slotDate) return;
-            const iso = s.slotDate.slice(0, 10);
-            if (!map[iso]) map[iso] = [];
-            const t = (s.startTime || '').slice(0, 5);
-            if (t && !map[iso].includes(t)) map[iso].push(t);
-          });
-          Object.values(map).forEach((arr) => arr.sort());
-          setSlotsByDate(map);
-        }
+        applySchedule(schedule);
       } catch (err) {
         console.error('Load schedule failed', err);
       }
     };
     load();
     return () => { ignore = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Compute available dates: single slots + weekly recurring days in current month view
@@ -135,23 +142,30 @@ const ScheduleSettings = () => {
       return;
     }
 
-    const iso = draftSlot.date;
-    setSlotsByDate((prev) => {
-      const current = prev[iso] || [];
-      if (current.includes(draftSlot.startTime)) return prev;
-      return { ...prev, [iso]: [...current, draftSlot.startTime].sort() };
-    });
-    setSelectedDate(iso);
+    setSelectedDate(draftSlot.date);
 
     try {
-      await addSingleSlot({
+      const summary = await addSingleSlot({
         slotDate: draftSlot.date,
         startTime: draftSlot.startTime,
         endTime: draftSlot.endTime,
       });
+      // Response is the full schedule summary — rebuild so the new slot has its id.
+      if (summary) applySchedule(summary);
       flash('Single slot added successfully.');
     } catch (err) {
       flash(err?.response?.data?.message || 'Failed to add slot.');
+    }
+  };
+
+  const handleDeleteSlot = async (slotId) => {
+    if (slotId == null) return;
+    try {
+      const summary = await deleteSlot(slotId);
+      if (summary) applySchedule(summary);
+      flash('Slot removed successfully.');
+    } catch (err) {
+      flash(err?.response?.data?.message || 'Failed to remove slot.');
     }
   };
 
@@ -229,6 +243,7 @@ const ScheduleSettings = () => {
           draftSlot={draftSlot}
           onDraftChange={handleDraftChange}
           onAddSlot={handleAddSlot}
+          onDeleteSlot={handleDeleteSlot}
         />
       </section>
     </main>

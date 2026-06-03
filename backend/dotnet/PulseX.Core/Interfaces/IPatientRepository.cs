@@ -10,5 +10,6 @@ namespace PulseX.Core.Interfaces
         Task<Patient> AddAsync(Patient patient);
         Task UpdateAsync(Patient patient);
         Task<List<Patient>> SearchPatientsAsync(string searchTerm);
+        Task<List<Patient>> GetAllAsync(int limit = 8);
     }
 }

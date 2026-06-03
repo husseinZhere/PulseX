@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, Link, useLocation } from 'react-router-dom';
 import {
   HiOutlineUsers,
   HiOutlineCalendarDays,
@@ -35,12 +35,12 @@ const DoctorSidebar = ({ onClose, onLogout }) => {
     <div className="group flex flex-col w-full sm:w-[260px] md:w-[280px] max-w-full h-[100dvh] sm:h-full min-h-0 bg-white dark:bg-[#111827] rounded-[24px] overflow-hidden border border-gray-100 dark:border-gray-800/50 shadow-sm dark:shadow-none">
 
       {/* ── Logo Section ── */}
-      <div className="flex items-center gap-2 px-4 py-3 shrink-0">
+      <Link to="/" className="flex items-center gap-2 px-4 py-3 shrink-0 no-underline">
         <img src={logo} alt="Logo" className="w-6 h-6 shrink-0" />
         <span className="text-[24px] font-bold text-black-main-text dark:text-[#E2E8F0]">
           Pulse<span className="text-[#333CF5]">X</span>
         </span>
-      </div>
+      </Link>
 
       {/* ── Navigation ── */}
       <nav

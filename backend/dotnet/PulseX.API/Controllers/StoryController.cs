@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PulseX.API.Services;
 using PulseX.Core.DTOs.Story;
 using PulseX.Core.Enums;
+using PulseX.Core.Interfaces;
 using System.Security.Claims;
 
 namespace PulseX.API.Controllers
@@ -12,15 +13,17 @@ namespace PulseX.API.Controllers
     public class StoryController : ControllerBase
     {
         private readonly StoryService _storyService;
+        private readonly IPatientRepository _patientRepository;
         private readonly IWebHostEnvironment _environment;
         private readonly string _webRoot;
 
         private static readonly string[] AllowedCoverExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
 
-        public StoryController(StoryService storyService, IWebHostEnvironment environment)
+        public StoryController(StoryService storyService, IPatientRepository patientRepository, IWebHostEnvironment environment)
         {
             _storyService = storyService;
-            _environment  = environment;
+            _patientRepository = patientRepository;
+            _environment = environment;
             _webRoot = string.IsNullOrEmpty(_environment.WebRootPath)
                 ? _environment.ContentRootPath
                 : _environment.WebRootPath;
@@ -75,6 +78,20 @@ namespace PulseX.API.Controllers
                 return Ok(result);
             }
             catch (Exception ex) { return BadRequest(new { message = ex.Message }); }
+        }
+
+        // ?? Public: patient avatars for home page stories section ???????????
+        /// <summary>Returns name + avatar for all patients (used by the home page stories carousel)</summary>
+        [HttpGet("patient-avatars")]
+        public async Task<IActionResult> GetPatientAvatars([FromQuery] int limit = 8)
+        {
+            var patients = await _patientRepository.GetAllAsync(limit);
+            var result = patients.Select(p => new
+            {
+                name = p.User?.FullName ?? "",
+                avatar = p.User?.ProfilePicture ?? ""
+            });
+            return Ok(result);
         }
 
         // ?? Public: single story detail + 3 preview comments + related ????
@@ -146,6 +163,34 @@ namespace PulseX.API.Controllers
             catch (Exception ex) { return BadRequest(new { message = ex.Message }); }
         }
 
+        // ?? Authenticated: edit own comment ???????????????????????????????
+        [HttpPut("{storyId:int}/comments/{commentId:int}")]
+        [Authorize]
+        public async Task<IActionResult> UpdateComment(
+            int storyId, int commentId, [FromBody] AddCommentDto dto)
+        {
+            try
+            {
+                var updated = await _storyService.UpdateCommentAsync(commentId, GetUserId(), dto.Content);
+                return Ok(new { message = "Comment updated", data = updated });
+            }
+            catch (Exception ex) { return BadRequest(new { message = ex.Message }); }
+        }
+
+        // ?? Authenticated: delete own comment; Admin can delete any ????????
+        [HttpDelete("{storyId:int}/comments/{commentId:int}")]
+        [Authorize]
+        public async Task<IActionResult> DeleteComment(int storyId, int commentId)
+        {
+            try
+            {
+                var isAdmin = User.IsInRole("Admin");
+                await _storyService.DeleteCommentAsync(commentId, GetUserId(), isAdmin);
+                return Ok(new { message = "Comment deleted" });
+            }
+            catch (Exception ex) { return BadRequest(new { message = ex.Message }); }
+        }
+
         // ?? Authenticated: like a comment ?????????????????????????????????
         [HttpPost("{storyId:int}/comments/{commentId:int}/like")]
         [Authorize]
@@ -194,6 +239,40 @@ namespace PulseX.API.Controllers
             {
                 var stories = await _storyService.GetPatientStoriesAsync(GetUserId());
                 return Ok(stories);
+            }
+            catch (Exception ex) { return BadRequest(new { message = ex.Message }); }
+        }
+
+        // ?? Patient: edit their own story ?????????????????????????????????
+        [HttpPut("{storyId:int}/mine")]
+        [Authorize(Roles = "Patient")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UpdateMyStory(
+            int storyId, [FromForm] CreateStoryDto dto, IFormFile? coverImage)
+        {
+            try
+            {
+                var userId = GetUserId();
+
+                if (coverImage != null)
+                {
+                    var ext = Path.GetExtension(coverImage.FileName).ToLowerInvariant();
+                    if (!AllowedCoverExtensions.Contains(ext))
+                        return BadRequest(new { message = "Cover image must be JPG, PNG or GIF" });
+                    if (coverImage.Length > 5 * 1024 * 1024)
+                        return BadRequest(new { message = "Cover image must not exceed 5 MB" });
+
+                    var folder = Path.Combine(_webRoot, "uploads", "story-covers");
+                    Directory.CreateDirectory(folder);
+
+                    var fileName = $"cover_{userId}_{DateTime.UtcNow:yyyyMMddHHmmss}_{Guid.NewGuid()}{ext}";
+                    using var stream = new FileStream(Path.Combine(folder, fileName), FileMode.Create);
+                    await coverImage.CopyToAsync(stream);
+                    dto.ImageUrl = $"/uploads/story-covers/{fileName}";
+                }
+
+                var story = await _storyService.UpdateOwnStoryAsync(storyId, userId, dto);
+                return Ok(new { message = "Story updated successfully", data = story });
             }
             catch (Exception ex) { return BadRequest(new { message = ex.Message }); }
         }

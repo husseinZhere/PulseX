@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { FaEye, FaEyeSlash, FaTrash } from 'react-icons/fa';
 import {
   HiChevronDown,
@@ -258,7 +259,13 @@ export default function StoriesManagementPage() {
           onCancel={() => setDeleteModal({ open: false, story: null, mode: 'single' })}
         />
 
-        <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        {/* Header */}
+        <motion.header
+          className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"
+          initial={{ opacity: 0, y: -18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: 'easeOut' }}
+        >
           <div className="flex flex-col gap-1">
             <div className="mb-2 flex items-center gap-2">
               <HiOutlinePencilSquare className="text-[22px] text-black-main-text dark:text-[#E2E8F0]" aria-hidden="true" />
@@ -274,26 +281,36 @@ export default function StoriesManagementPage() {
             </p>
           </div>
 
-          <button
+          <motion.button
             type="button"
             onClick={handleDeleteAllClick}
             disabled={deletableStoriesCount === 0}
-            className={`inline-flex items-center gap-2 self-start rounded-full border px-4 py-2.5 text-[13px] font-semibold transition-colors ${deletableStoriesCount === 0
-                ? 'cursor-not-allowed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0B1220] text-gray-400 dark:text-gray-500'
-                : 'cursor-pointer border-red-200 dark:border-red-900/60 bg-white dark:bg-[#111827] text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30'
-              }`}
+            whileHover={deletableStoriesCount > 0 ? { scale: 1.04 } : {}}
+            whileTap={deletableStoriesCount > 0 ? { scale: 0.97 } : {}}
+            className={`inline-flex items-center gap-2 self-start rounded-full px-5 py-2.5 text-[13px] font-semibold transition-all duration-200 ${
+              deletableStoriesCount === 0
+                ? 'cursor-not-allowed border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0B1220] text-gray-400 dark:text-gray-500'
+                : 'cursor-pointer bg-red-600 dark:bg-red-600 text-white shadow-[0_4px_14px_rgba(220,38,38,0.4)] hover:bg-red-700 dark:hover:bg-red-500 border border-red-700 dark:border-red-500'
+            }`}
           >
             <HiOutlineTrash size={16} />
             Delete All Stories
-          </button>
-        </header>
+          </motion.button>
+        </motion.header>
 
-        <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Stories summary statistics">
-          <StatCard label="Total Stories" value={liveStats.total} icon={<FaBookOpen />} iconBg="#EEF2FF" iconColor="#333CF5" />
-          <StatCard label="Published Stories" value={liveStats.published} icon={<FaEye />} iconBg="#ECFDF5" iconColor="#16A34A" />
-          <StatCard label="Hidden Stories" value={liveStats.hidden} icon={<FaEyeSlash />} iconBg="#FFF7ED" iconColor="#757575" />
-          <StatCard label="Deleted Stories" value={liveStats.deleted} icon={<FaTrash />} iconBg="#FEF2F2" iconColor="#EF4444" />
-        </section>
+        {/* Stat cards with stagger */}
+        <motion.section
+          className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
+          aria-label="Stories summary statistics"
+          initial="hidden"
+          animate="visible"
+          variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+        >
+          <StatCard label="Total Stories"     value={liveStats.total}     icon={<FaBookOpen />} iconBg="#EEF2FF" iconColor="#333CF5" />
+          <StatCard label="Published Stories" value={liveStats.published} icon={<FaEye />}      iconBg="#ECFDF5" iconColor="#16A34A" />
+          <StatCard label="Hidden Stories"    value={liveStats.hidden}    icon={<FaEyeSlash />} iconBg="#FFF7ED" iconColor="#757575" />
+          <StatCard label="Deleted Stories"   value={liveStats.deleted}   icon={<FaTrash />}    iconBg="#FEF2F2" iconColor="#EF4444" />
+        </motion.section>
 
         <section className="flex flex-col flex-wrap items-start gap-3 rounded-2xl border border-gray-100 dark:border-gray-800 bg-[#F8FAFC] dark:bg-[#0B1220] p-3 sm:flex-row sm:items-center sm:p-4" aria-label="Stories filters">
           {[
@@ -361,10 +378,15 @@ export default function StoriesManagementPage() {
             </thead>
 
             <tbody>
+              <AnimatePresence mode="wait">
               {paginated.map((story, index) => (
-                <tr
+                <motion.tr
                   key={story.id}
                   onClick={() => handleRowClick(story)}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.28, delay: index * 0.06, ease: 'easeOut' }}
                   className={`block sm:table-row rounded-[14px] sm:rounded-none border-2 border-gray-100 dark:border-gray-700 sm:border-0 mb-3 sm:mb-0 transition-colors cursor-pointer ${index % 2 === 0 ? 'bg-white dark:bg-[#111827]' : 'bg-[#F9FAFB] dark:bg-[#0F172A]'
                     } hover:bg-[#EFF6FF]/60 dark:hover:bg-[#1E3A8A]/25`}
                 >
@@ -442,8 +464,9 @@ export default function StoriesManagementPage() {
                       </button>
                     </div>
                   </td>
-                </tr>
+                </motion.tr>
               ))}
+              </AnimatePresence>
             </tbody>
           </table>
 
@@ -495,7 +518,12 @@ export default function StoriesManagementPage() {
 
 function StatCard({ label, value, icon, iconBg, iconColor }) {
   return (
-    <article className="flex w-full items-center justify-between rounded-[14px] border border-gray-100 dark:border-gray-800 bg-white dark:bg-[#111827] px-4 py-8 shadow-xl">
+    <motion.article
+      variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
+      whileHover={{ y: -3, boxShadow: '0 8px 24px rgba(0,0,0,0.10)' }}
+      className="flex w-full items-center justify-between rounded-[14px] border border-gray-100 dark:border-gray-800 bg-white dark:bg-[#111827] px-4 py-8 shadow-xl"
+    >
       <div className="flex flex-col gap-1">
         <p className="mb-2 text-[14px] font-normal tracking-wide text-gray-text-dim2 dark:text-gray-400">{label}</p>
         <p className="text-[30px] font-bold leading-none text-black-main-text dark:text-[#E2E8F0]">{value.toLocaleString()}</p>
@@ -507,6 +535,6 @@ function StatCard({ label, value, icon, iconBg, iconColor }) {
       >
         {icon}
       </div>
-    </article>
+    </motion.article>
   );
 }

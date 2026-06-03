@@ -108,14 +108,26 @@ namespace PulseX.API.Services
                     return Enumerable.Empty<AppointmentDto>();
             }
 
-            var apptList = appointments.ToList();
-            var dtos = _mapper.Map<List<AppointmentDto>>(apptList);
-
-            // Compute CanChat for each appointment
             var nowUtc = DateTime.UtcNow;
             // AppointmentDate is stored as Egypt local (UTC+2); Egypt now = UTC + 2h
             var nowEgypt = nowUtc.AddHours(2);
 
+            var apptList = appointments.ToList();
+
+            // Auto-complete past scheduled appointments whose 24-hour window has closed
+            var toComplete = apptList
+                .Where(a => (a.Status == AppointmentStatus.Scheduled || a.Status == AppointmentStatus.Confirmed)
+                            && nowEgypt > a.AppointmentDate.AddHours(24))
+                .ToList();
+            foreach (var a in toComplete)
+            {
+                a.Status = AppointmentStatus.Completed;
+                await _appointmentRepository.UpdateAsync(a);
+            }
+
+            var dtos = _mapper.Map<List<AppointmentDto>>(apptList);
+
+            // Compute CanChat for each appointment
             for (int i = 0; i < dtos.Count; i++)
             {
                 var appt = apptList[i];

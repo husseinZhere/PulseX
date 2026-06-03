@@ -1,13 +1,13 @@
 import { HiOutlinePencilAlt } from 'react-icons/hi';
 
-const StoryDetailsFooter = ({ onBack, onWriteStory }) => {
+const StoryDetailsFooter = ({ onBack, onWriteStory, backLabel = 'Back to Stories' }) => {
   return (
     <footer className="flex flex-col sm:flex-row justify-end gap-3 py-2">
       <button
         onClick={onBack}
         className="w-full sm:w-auto px-6 py-2.5 cursor-pointer rounded-full border border-gray-300 text-sm font-semibold text-black-main-text dark:text-[#E2E8F0] bg-white dark:bg-[#111827] hover:bg-gray-50 transition"
       >
-        Back to Stories
+        {backLabel}
       </button>
       <button
         onClick={onWriteStory}

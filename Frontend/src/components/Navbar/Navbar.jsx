@@ -1,22 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { HiBars3, HiXMark, HiOutlineMoon, HiOutlineSun } from "react-icons/hi2";
 import logoImg from '../../assets/logo/logo.svg';
 import Button from './../../Button/Button';
 import { FaArrowRight } from 'react-icons/fa';
 import { useTheme } from '../../context/ThemeContext';
+import { getStoredUser } from '../../utils/api';
+
+const getDashboardPath = (user) => {
+  const role = user?.role ?? user?.Role;
+  if (role === 0 || role === 'Admin') return '/admin/dashboard';
+  if (role === 1 || role === 'Doctor') return '/doctor/dashboard';
+  return '/patient/dashboard';
+};
+
 const Navbar = () => {
+  const loggedInUser = getStoredUser();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [activeSection, setActiveSection] = useState('home'); // لمتابعة السيكشن الظاهر
+  const [activeSection, setActiveSection] = useState('home');
   const { isDark, toggleTheme } = useTheme();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const navLinks = [
     { label: 'Home', href: '#home' },
     { label: 'Doctors', href: '#doctors' },
     { label: 'Features', href: '#features' },
     { label: 'Stories', href: '#stories' },
-    { label: 'About', href: '#about' },
+  ];
+
+  const pageLinks = [
+    { label: 'About', to: '/about' },
+    { label: 'Contact', to: '/contact' },
   ];
 
   const NAV_HEIGHT = 82;
@@ -33,6 +49,16 @@ const Navbar = () => {
 
   const handleAnchorNavigation = (event, href) => {
     const sectionId = href.replace('#', '');
+    const isHomePage = location.pathname === '/' || location.pathname === '';
+
+    if (!isHomePage) {
+      // SPA navigate to home with hash — no full reload, dark mode preserved
+      event.preventDefault();
+      setIsOpen(false);
+      navigate(`/${href}`);
+      return;
+    }
+
     const hasSection = scrollToSection(sectionId);
     if (!hasSection) return;
 
@@ -95,12 +121,12 @@ const Navbar = () => {
           </span>
         </a>
 
-        {/* لينكات الكمبيوتر - Anchor Links */}
+        {/* لينكات الكمبيوتر */}
         <div className="hidden md:flex items-center gap-[40px]">
           {navLinks.map((link) => {
             const sectionId = link.href.replace('#', '');
-            const isActive = activeSection === sectionId;
-
+            const isHomePage = location.pathname === '/' || location.pathname === '';
+            const isActive = isHomePage && activeSection === sectionId;
             return (
               <a
                 key={link.href}
@@ -109,7 +135,7 @@ const Navbar = () => {
                 className={`
                   relative font-inter text-[14px] font-medium transition-all duration-300 pb-1 group cursor-pointer
                   ${isActive ? 'text-brand-main' : 'text-gray-text-dim hover:text-brand-main'}
-                  after:content-[''] after:absolute after:bottom-0 after:-left-2 after:-right-2 after:h-[2px] 
+                  after:content-[''] after:absolute after:bottom-0 after:-left-2 after:-right-2 after:h-[2px]
                   after:bg-brand-main after:transition-all after:duration-500
                   ${isActive ? 'after:scale-x-100' : 'after:scale-x-0 group-hover:after:scale-x-100'}
                 `}
@@ -118,21 +144,47 @@ const Navbar = () => {
               </a>
             );
           })}
+          {pageLinks.map((link) => {
+            const isActive = location.pathname === link.to;
+            return (
+              <Link
+                key={link.to}
+                to={link.to}
+                className={`
+                  relative font-inter text-[14px] font-medium transition-all duration-300 pb-1 group cursor-pointer
+                  ${isActive ? 'text-brand-main' : 'text-gray-text-dim hover:text-brand-main'}
+                  after:content-[''] after:absolute after:bottom-0 after:-left-2 after:-right-2 after:h-[2px]
+                  after:bg-brand-main after:transition-all after:duration-500
+                  ${isActive ? 'after:scale-x-100' : 'after:scale-x-0 group-hover:after:scale-x-100'}
+                `}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
         </div>
 
-        {/* الأزرار الثابتة (Login/Register تظل صفحات مستقلة) */}
+        {/* الأزرار الثابتة */}
         <div className="hidden md:flex items-center gap-6">
           <button onClick={toggleTheme} className="text-gray-500 hover:text-brand-main transition-colors cursor-pointer">
             {isDark ? <HiOutlineSun className="w-6 h-6" /> : <HiOutlineMoon className="w-6 h-6" />}
           </button>
-          <div className="flex gap-3">
-            <Button variant="outline" className="text-[#0F172A] font-semibold border-gray-300 hover:text-white">
-              <Link to="/login" className="flex items-center gap-2">Login</Link>
-            </Button>
+          {loggedInUser ? (
             <Button variant="primary">
-              <Link to="/register" className="flex items-center gap-2"> Get Started   <FaArrowRight className="w-2 h-2 transition-transform group-hover:translate-x-1" /></Link>
+              <Link to={getDashboardPath(loggedInUser)} className="flex items-center gap-2">
+                Go to Dashboard <FaArrowRight className="w-2 h-2 transition-transform group-hover:translate-x-1" />
+              </Link>
             </Button>
-          </div>
+          ) : (
+            <div className="flex gap-3">
+              <Button variant="outline" className="text-[#0F172A] dark:text-[#0F172A] font-semibold border-gray-300 hover:text-white dark:hover:text-white">
+                <Link to="/login" className="flex items-center gap-2">Login</Link>
+              </Button>
+              <Button variant="primary">
+                <Link to="/register" className="flex items-center gap-2"> Get Started   <FaArrowRight className="w-2 h-2 transition-transform group-hover:translate-x-1" /></Link>
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* زرار الموبايل */}
@@ -151,7 +203,8 @@ const Navbar = () => {
         <div className="min-h-0">
           <div className="flex flex-col p-6 gap-5">
             {navLinks.map((link) => {
-              const isActive = activeSection === link.href.replace('#', '');
+              const isHomePage = location.pathname === '/' || location.pathname === '';
+              const isActive = isHomePage && activeSection === link.href.replace('#', '');
               return (
                 <a
                   key={link.href}
@@ -166,6 +219,19 @@ const Navbar = () => {
                 </a>
               );
             })}
+            {pageLinks.map((link) => {
+              const isActive = location.pathname === link.to;
+              return (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  onClick={() => setIsOpen(false)}
+                  className={`font-semibold text-[16px] py-2 cursor-pointer transition-all duration-300 hover:translate-x-2 ${isActive ? 'text-brand-main translate-x-2' : 'text-gray-800 dark:text-gray-200 hover:text-brand-main'}`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
 
             <div className="flex items-center justify-end pt-6 border-t border-gray-200 dark:border-gray-700">
               <button onClick={toggleTheme} className="text-gray-900 dark:text-gray-100 cursor-pointer">
@@ -173,21 +239,32 @@ const Navbar = () => {
               </button>
             </div>
 
-            <Link
-              to="/login"
-              onClick={() => setIsOpen(false)}
-              className="text-center py-3.5 border-2 border-brand-main rounded-xl text-brand-main font-bold block w-full bg-white dark:bg-[#111827]"
-            >
-              Login
-            </Link>
-
-            <Link
-              to="/register"
-              onClick={() => setIsOpen(false)}
-              className="text-center py-3.5 bg-brand-main rounded-xl text-white font-bold block w-full shadow-lg dark:shadow-none"
-            >
-              Get Started
-            </Link>
+            {loggedInUser ? (
+              <Link
+                to={getDashboardPath(loggedInUser)}
+                onClick={() => setIsOpen(false)}
+                className="text-center py-3.5 bg-brand-main rounded-xl text-white font-bold flex items-center justify-center gap-2 w-full shadow-lg dark:shadow-none"
+              >
+                Go to Dashboard <FaArrowRight className="w-3 h-3" />
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  onClick={() => setIsOpen(false)}
+                  className="text-center py-3.5 border-2 border-brand-main rounded-xl text-brand-main font-bold block w-full bg-white dark:bg-[#111827]"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  onClick={() => setIsOpen(false)}
+                  className="text-center py-3.5 bg-brand-main rounded-xl text-white font-bold block w-full shadow-lg dark:shadow-none"
+                >
+                  Get Started
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

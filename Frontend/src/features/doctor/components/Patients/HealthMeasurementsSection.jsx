@@ -1,4 +1,4 @@
-import { LuDroplets, LuRuler, LuWeight, LuThermometer } from 'react-icons/lu';
+import { LuDroplets, LuRuler, LuWeight } from 'react-icons/lu';
 
 const Input = ({ label, placeholder, icon, value, onChange }) => (
   <label className="block">
@@ -22,7 +22,6 @@ const HealthMeasurementsSection = ({ values, onChange }) => {
       <p className="text-[18px] text-[#6B7280] dark:text-gray-400">Enter or update the patient's health measurements.</p>
 
       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <Input label="Body Temperature (°C)" placeholder="e.g. 37.0°C" icon={<LuThermometer />} value={values.temperature} onChange={(value) => onChange('temperature', value)} />
         <Input label="Blood Sugar" placeholder="mg/dL" icon={<LuDroplets />} value={values.bloodSugar} onChange={(value) => onChange('bloodSugar', value)} />
         <Input label="Height" placeholder="cm" icon={<LuRuler />} value={values.height} onChange={(value) => onChange('height', value)} />
         <Input label="Weight" placeholder="kg" icon={<LuWeight />} value={values.weight} onChange={(value) => onChange('weight', value)} />

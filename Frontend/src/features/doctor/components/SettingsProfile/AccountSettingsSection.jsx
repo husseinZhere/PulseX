@@ -1,20 +1,17 @@
+import { useState } from 'react';
 import { useTheme } from '../../../../context/ThemeContext';
-import { LuBell, LuLock, LuMoon } from 'react-icons/lu';
+import { LuLock, LuMoon, LuVolume2 } from 'react-icons/lu';
 import { HiOutlineCog6Tooth } from 'react-icons/hi2';
+import { isMuted, toggleMute } from '../../../../utils/notificationSound';
 
 const Toggle = ({ checked, onChange }) => (
   <button
     type="button"
-    onClick={(e) => {
-      e.preventDefault();
-      onChange();
-    }}
+    onClick={(e) => { e.preventDefault(); onChange(); }}
     className={`cursor-pointer relative h-6 w-11 rounded-full transition-colors duration-200 ease-in-out focus:outline-none ${checked ? 'bg-[#333CF5]' : 'bg-[#D1D5DB]'}`}
     aria-pressed={checked}
   >
-    <span 
-      className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white transition-transform duration-200 ease-in-out shadow-sm ${checked ? 'translate-x-5' : 'translate-x-0'}`} 
-    />
+    <span className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white transition-transform duration-200 ease-in-out shadow-sm ${checked ? 'translate-x-5' : 'translate-x-0'}`} />
   </button>
 );
 
@@ -31,8 +28,9 @@ const SettingRow = ({ icon, title, desc, action }) => (
   </div>
 );
 
-const AccountSettingsSection = ({ emailNotif, setEmailNotif, onOpenPassword }) => {
+const AccountSettingsSection = ({ onOpenPassword }) => {
   const { isDark, toggleTheme } = useTheme();
+  const [muted, setMuted] = useState(isMuted);
 
   return (
     <section className="overflow-hidden rounded-[16px] border border-[#E5E7EB] dark:border-gray-700 bg-white dark:bg-[#111827]" aria-labelledby="doctor-account-title">
@@ -57,16 +55,16 @@ const AccountSettingsSection = ({ emailNotif, setEmailNotif, onOpenPassword }) =
           }
         />
         <SettingRow
-          icon={<LuBell />}
-          title="Email Notifications"
-          desc="Receive email updates about your account"
-          action={<Toggle checked={emailNotif} onChange={() => setEmailNotif((state) => !state)} />}
-        />
-        <SettingRow
           icon={<LuMoon />}
           title="Dark Mode"
           desc="Switch to dark theme"
           action={<Toggle checked={isDark} onChange={() => toggleTheme()} />}
+        />
+        <SettingRow
+          icon={<LuVolume2 />}
+          title="Notification Sounds"
+          desc="Play sounds for new messages and notifications"
+          action={<Toggle checked={!muted} onChange={() => setMuted(toggleMute())} />}
         />
       </div>
     </section>

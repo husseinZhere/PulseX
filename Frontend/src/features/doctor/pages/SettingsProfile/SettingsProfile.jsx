@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import doctorProfile from '../../../../assets/Images/doctor-profile.png';
 import ConfirmModal from '../../../admin/components/ConfirmModal/ConfirmModal';
 import AboutSection from '../../components/SettingsProfile/AboutSection';
 import AccountSettingsSection from '../../components/SettingsProfile/AccountSettingsSection';
@@ -18,39 +17,18 @@ import {
 import { resolveFileUrl } from '../../../../utils/api';
 
 const INITIAL_FORM = {
-  photo: doctorProfile,
-  firstName: 'Noha',
-  lastName: 'Salem',
-  email: 'noha.salem@pulsex.com',
-  phone: '+20 1234567890',
-  dob: '1985-06-15',
-  location: 'Cairo, Egypt',
-  experienceYears: 'e.g., 10 or 10+',
-  gender: 'female',
+  photo: '',
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  dob: '',
+  location: '',
+  experienceYears: '',
+  gender: 'male',
 };
 
-const INITIAL_EXPERIENCES = [
-  {
-    id: 1,
-    type: 'work',
-    typeLabel: 'Work',
-    institution: 'Cairo Heart Institute',
-    position: 'Senior Cardiologist',
-    startDate: '2018',
-    endDate: 'Present',
-    description: '',
-  },
-  {
-    id: 2,
-    type: 'education',
-    typeLabel: 'Education',
-    institution: 'Cairo University Faculty of Medicine',
-    position: 'Medical Degree & Specialization',
-    startDate: '2008',
-    endDate: '2014',
-    description: '',
-  },
-];
+const INITIAL_EXPERIENCES = [];
 
 const SettingsProfile = () => {
   const [form, setForm] = useState(() => ({
@@ -60,10 +38,9 @@ const SettingsProfile = () => {
   const [about, setAbout] = useState('');
   const [experiences, setExperiences] = useState(INITIAL_EXPERIENCES);
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
-  const [emailNotif, setEmailNotif] = useState(true);
   const { isDark, toggleTheme } = useTheme();
   const [pwModalOpen, setPwModalOpen] = useState(false);
-  const [toast, setToast] = useState({ visible: false, title: '', message: '' });
+  const [toast, setToast] = useState({ visible: false, title: '', message: '', type: 'success' });
 
   useEffect(() => {
     document.title = 'Settings & Profile | PulseX Doctor';
@@ -176,8 +153,8 @@ const SettingsProfile = () => {
 
   const canDeleteExperience = useMemo(() => experiences.length > 1, [experiences.length]);
 
-  const showToast = (title, message) => {
-    setToast({ visible: true, title, message });
+  const showToast = (title, message, type = 'success') => {
+    setToast({ visible: true, title, message, type });
     setTimeout(() => setToast((state) => ({ ...state, visible: false })), 3500);
   };
 
@@ -217,7 +194,7 @@ const SettingsProfile = () => {
         visible={toast.visible}
         title={toast.title}
         message={toast.message}
-        type="success"
+        type={toast.type}
         onClose={() => setToast((state) => ({ ...state, visible: false }))}
       />
 
@@ -243,6 +220,7 @@ const SettingsProfile = () => {
             form={form}
             setForm={setForm}
             onPhotoUploaded={handlePhotoUploaded}
+            onPhotoError={(title, msg) => showToast(title, msg, 'error')}
             onSave={handleSaveProfile}
           />
 
@@ -263,10 +241,6 @@ const SettingsProfile = () => {
           />
 
           <AccountSettingsSection
-            emailNotif={emailNotif}
-            setEmailNotif={setEmailNotif}
-            darkMode={isDark}
-            setDarkMode={() => toggleTheme()}
             onOpenPassword={() => setPwModalOpen(true)}
           />
         </section>

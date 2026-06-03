@@ -1,6 +1,7 @@
 using PulseX.Core.DTOs.Doctor;
 using PulseX.Core.Interfaces;
 using PulseX.Core.Models;
+using PulseX.Core.Enums;
 
 namespace PulseX.API.Services
 {
@@ -14,14 +15,18 @@ namespace PulseX.API.Services
         private static readonly TimeZoneInfo EgyptTz =
             TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time");
 
+        private readonly IAppointmentRepository _appointmentRepository;
+
         public DoctorScheduleService(
             IDoctorScheduleRepository scheduleRepository,
             IDoctorRepository doctorRepository,
-            ILogger<DoctorScheduleService> logger)
+            ILogger<DoctorScheduleService> logger,
+            IAppointmentRepository appointmentRepository)
         {
             _scheduleRepository = scheduleRepository;
             _doctorRepository = doctorRepository;
             _logger = logger;
+            _appointmentRepository = appointmentRepository;
         }
 
         // ?? Doctor: Save/replace the full weekly recurring schedule ??????????
@@ -114,25 +119,62 @@ namespace PulseX.API.Services
         // ?? Patient: Get available time strings for a specific date ??????????
         public async Task<List<string>> GetAvailableTimesForDateAsync(int doctorId, DateTime date)
         {
+            var result = await GetTimesWithBookingStatusAsync(doctorId, date);
+            return result.Where(s => !s.IsBooked).Select(s => s.Time).ToList();
+        }
+
+        public async Task<List<(string Time, bool IsBooked)>> GetTimesWithBookingStatusAsync(int doctorId, DateTime date)
+        {
             var slots = await _scheduleRepository.GetByDoctorIdAsync(doctorId);
             var slotList = slots.ToList();
 
             var times = new List<string>();
-
-            // 1. Collect weekly recurring slots that match the requested day-of-week
             var dow = (int)date.DayOfWeek;
-            times.AddRange(
-                slotList
-                    .Where(s => s.SlotType == "Weekly" && s.DayOfWeek == dow)
-                    .Select(s => s.StartTime));
 
-            // 2. Collect single slots that match the requested date exactly
+            // Weekly = work hours → expand each StartTime–EndTime range into
+            // hourly bookable slots (09:00, 10:00, … up to but excluding EndTime).
+            foreach (var s in slotList.Where(s => s.SlotType == "Weekly" && s.DayOfWeek == dow))
+            {
+                times.AddRange(ExpandToHourlySlots(s.StartTime, s.EndTime));
+            }
+
+            // Single = specific one-off slot at its StartTime.
             times.AddRange(
                 slotList
                     .Where(s => s.SlotType == "Single" && s.SlotDate.HasValue && s.SlotDate.Value.Date == date.Date)
                     .Select(s => s.StartTime));
 
-            return times.Distinct().OrderBy(t => t).ToList();
+            var allTimes = times.Distinct().OrderBy(t => t).ToList();
+
+            // Get booked appointments for this doctor on this date
+            var allAppointments = await _appointmentRepository.GetByDoctorIdAsync(doctorId);
+            var bookedTimes = allAppointments
+                .Where(a => a.AppointmentDate.Date == date.Date &&
+                            a.Status != AppointmentStatus.Cancelled)
+                .Select(a => a.AppointmentDate.ToString("HH:mm"))
+                .ToHashSet();
+
+            return allTimes
+                .Select(t => (Time: t, IsBooked: bookedTimes.Contains(t)))
+                .ToList();
+        }
+
+        // Expand a "HH:mm" work-hours range into hourly slot start times.
+        // e.g. 09:00–12:00 → ["09:00","10:00","11:00"]. Falls back to just the
+        // start time when the range is empty/invalid or under an hour.
+        private static IEnumerable<string> ExpandToHourlySlots(string startTime, string endTime)
+        {
+            if (!TimeSpan.TryParse(startTime, out var start))
+                return new[] { startTime };
+            if (!TimeSpan.TryParse(endTime, out var end) || end <= start)
+                return new[] { startTime };
+
+            var slots = new List<string>();
+            for (var t = start; t < end; t = t.Add(TimeSpan.FromHours(1)))
+            {
+                slots.Add($"{t.Hours:D2}:{t.Minutes:D2}");
+            }
+            return slots.Count > 0 ? slots : new[] { startTime };
         }
 
         // ?? Helpers ??????????????????????????????????????????????????????????

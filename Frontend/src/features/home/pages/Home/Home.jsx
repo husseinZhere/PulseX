@@ -4,15 +4,7 @@ import Doctors from '../../components/Doctors/Doctors';
 import Features from '../../components/Features/Features';
 import Stories from '../../components/Stories/Stories';
 import About from '../../components/JourneyTimeline/JourneyTimeline';
-import { useTheme } from '../../../../context/ThemeContext';
-
 const Home = () => {
-  const { resetToLight } = useTheme();
-
-  // Landing page is always light mode regardless of user preference
-  useEffect(() => {
-    resetToLight();
-  }, [resetToLight]);
 
   useEffect(() => {
     const pageTitle = 'PulseX | AI-Powered Heart Health Monitoring';

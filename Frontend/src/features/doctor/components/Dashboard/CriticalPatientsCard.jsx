@@ -12,7 +12,7 @@ const riskClass = (risk) => {
   return 'bg-[#DCFCE7] text-[#15803D]';
 };
 
-const CriticalPatientsCard = ({ patients, onViewMore }) => {
+const CriticalPatientsCard = ({ patients, onViewMore, onPatientClick }) => {
   if (!patients.length) {
     return (
       <section className="rounded-[24px] border-[0.5px] border-[#D7D8DC] dark:border-gray-700 bg-white dark:bg-[#111827] p-6 shadow-[0px_4px_12px_rgba(0,0,0,0.05)] h-full" aria-labelledby="critical-title-empty">
@@ -57,7 +57,8 @@ const CriticalPatientsCard = ({ patients, onViewMore }) => {
         {patients.map((patient, index) => (
           <article
             key={patient.id}
-            className={`flex items-center justify-between py-[16px] transition-colors hover:bg-gray-50 dark:hover:bg-[#1E293B] dark:bg-[#111827]/50 ${index !== patients.length - 1 ? 'border-b border-[#E5E7EB] dark:border-gray-700' : ''}`}
+            onClick={() => onPatientClick?.(patient.id)}
+            className={`flex items-center justify-between py-[16px] transition-colors cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1E293B] dark:bg-[#111827]/50 ${index !== patients.length - 1 ? 'border-b border-[#E5E7EB] dark:border-gray-700' : ''}`}
           >
             <div className="flex items-center gap-3.5 pl-1">
               {patient.avatar ? (

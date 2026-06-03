@@ -76,7 +76,7 @@ const PatientAppointments = () => {
     const targetId = cancelTarget;
     setCancelTarget(null);
     try {
-      await updateAppointmentStatus(targetId, { status: 2 });
+      await updateAppointmentStatus(targetId, { status: 4 });
       setAppointments((prev) =>
         prev.map((a) => (a.id === targetId ? { ...a, status: 'Cancelled' } : a))
       );
@@ -89,7 +89,7 @@ const PatientAppointments = () => {
 
   return (
     <main
-      className="min-h-screen flex flex-col gap-6 p-6 sm:p-[24px] bg-[#F7F9FB] dark:bg-[#0B1220]"
+      className="min-h-screen flex flex-col gap-6 p-6 sm:p-[24px]"
     >
       <ConfirmModal
         isOpen={!!cancelTarget}

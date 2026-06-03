@@ -11,7 +11,7 @@ const PatientPayment = () => {
   }, []);
 
   return (
-    <main className="min-h-screen bg-[#FAFBFF] dark:bg-[#0B1120] rounded-[22px] p-6 md:p-12 font-roboto" style={PAYMENT_CSS_VARS}>
+    <main className="min-h-screen bg-white dark:bg-[#111827] rounded-[22px] p-6 md:p-12 font-roboto" style={PAYMENT_CSS_VARS}>
       <PatientPaymentContent />
     </main>
   );

@@ -118,12 +118,25 @@ const isOnlinePayment = (pm) => {
   return s === '2' || s.includes('credit') || s.includes('online') || s.includes('card');
 };
 
+const isSameDay = (a, b) =>
+  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+
+const formatDateLabel = (d) => {
+  if (!d) return '';
+  const today = new Date();
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+  if (isSameDay(d, today)) return 'Today';
+  if (isSameDay(d, tomorrow)) return 'Tomorrow';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
 const mapUpcomingApi = (a) => {
   const d = a.appointmentDate ? new Date(a.appointmentDate) : null;
   return {
     id: a.id,
     type: 'appointment',
     time: d ? d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }) : '',
+    dateLabel: formatDateLabel(d),
     patient: a.patientName || '',
     room: a.room || '—',
     tag: tagForType(a.status).label,
@@ -149,7 +162,10 @@ const DoctorAppointments = () => {
         const data = await getMyAppointments();
         const list = Array.isArray(data) ? data : (data?.items || data?.appointments || []);
         const upcoming = list
-          .filter((a) => String(a.status || '').toLowerCase() === 'scheduled')
+          .filter((a) => {
+            const s = String(a.status || '').toLowerCase();
+            return s === 'scheduled' || s === 'confirmed';
+          })
           .map(mapUpcomingApi);
         const completed = list
           .filter((a) => String(a.status || '').toLowerCase() === 'completed');
@@ -206,7 +222,7 @@ const DoctorAppointments = () => {
     const targetId = cancelTarget;
     setCancelTarget(null);
     try {
-      await updateAppointmentStatus(targetId, { status: 2 });
+      await updateAppointmentStatus(targetId, { status: 4 });
       setUpcomingList((prev) => prev.filter((item) => item.id !== targetId));
       setFlashMessage('Appointment cancelled successfully.');
     } catch (err) {

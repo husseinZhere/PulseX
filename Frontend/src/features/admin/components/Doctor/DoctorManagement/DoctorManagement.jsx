@@ -31,9 +31,15 @@ const calcAge = (dob) => {
   }
 };
 
+const withDrPrefix = (name) => {
+  if (!name) return '';
+  const t = name.trim();
+  return /^dr\.?\s/i.test(t) ? t : `DR. ${t}`;
+};
+
 const mapUserToDoctor = (u) => ({
   id: u.id,
-  fullName: u.fullName || u.email || '',
+  fullName: withDrPrefix(u.fullName || u.email || ''),
   email: u.email || '',
   age: calcAge(u.dateOfBirth),
   location: u.clinicLocation || '',

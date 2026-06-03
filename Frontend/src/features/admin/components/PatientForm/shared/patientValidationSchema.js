@@ -1,7 +1,14 @@
 import * as Yup from "yup";
 
-const MAX_DOB = new Date();
 const MIN_DOB = new Date("1900-01-01");
+// Patient must be at least 13 years old
+const maxDobPatient = () => {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() - 13);
+  return d;
+};
+
+const EGYPTIAN_PHONE = /^01[0125][0-9]{8}$/;
 
 export const createPatientValidationSchema = Yup.object({
   firstName: Yup.string().required("First name is required"),
@@ -10,12 +17,12 @@ export const createPatientValidationSchema = Yup.object({
     .email("Invalid email format")
     .required("Email is required"),
   phone: Yup.string()
-    .matches(/^\+?[0-9]{7,15}$/, "Invalid phone number")
+    .matches(EGYPTIAN_PHONE, "Must be a valid Egyptian number (e.g. 01012345678)")
     .required("Phone number is required"),
   dateOfBirth: Yup.date()
     .nullable()
     .required("Date of birth is required")
-    .max(MAX_DOB, "Date of birth cannot be in the future")
+    .max(maxDobPatient(), "Patient must be at least 13 years old")
     .min(MIN_DOB, "Invalid date of birth"),
   password: Yup.string()
     .min(8, "Password must be at least 8 characters")
@@ -29,11 +36,13 @@ export const editPatientValidationSchema = Yup.object({
   email: Yup.string()
     .email("Invalid email format")
     .required("Email is required"),
-  phone: Yup.string().required("Phone number is required"),
+  phone: Yup.string()
+    .matches(EGYPTIAN_PHONE, "Must be a valid Egyptian number (e.g. 01012345678)")
+    .required("Phone number is required"),
   dateOfBirth: Yup.date()
     .nullable()
     .required("Date of birth is required")
-    .max(MAX_DOB, "Date of birth cannot be in the future")
+    .max(maxDobPatient(), "Patient must be at least 13 years old")
     .min(MIN_DOB, "Invalid date of birth"),
   password: Yup.string().min(8, "At least 8 characters"),
   gender: Yup.string().required("Gender is required"),

@@ -8,7 +8,7 @@ const styles = {
   variants: {
 primary: "cursor-pointer bg-brand-main text-white hover:bg-brand-secnd shadow-md hover:shadow-lg border border-transparent",
   
-  outline: " cursor-pointer bg-white text-gray-text-dim border border-gray-200 hover:bg-brand-main hover:text-white hover:border-brand-main shadow-sm hover:shadow-md",
+  outline: "cursor-pointer bg-white dark:bg-white text-[#0F172A] dark:text-[#0F172A] border border-gray-200 dark:border-gray-300 hover:bg-brand-main hover:text-white hover:border-brand-main shadow-sm hover:shadow-md",
     
     ghost: "cursor-pointer text-brand-main hover:bg-brand-main/10"
   

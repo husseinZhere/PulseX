@@ -126,10 +126,8 @@ export const clearSession = () => {
 
   removeStorageValue(localStorage, TOKEN_KEY);
   removeStorageValue(localStorage, USER_KEY);
-
-  removeStorageValue(localStorage, 'pulsex-profile-photo-admin');
-  removeStorageValue(localStorage, 'pulsex-profile-photo-doctor');
-  removeStorageValue(localStorage, 'pulsex-profile-photo-patient');
+  // Profile photos are intentionally kept across logout/login cycles
+  // so the avatar reappears immediately after the user signs back in.
 };
 
 export const getStoredUser = () => {

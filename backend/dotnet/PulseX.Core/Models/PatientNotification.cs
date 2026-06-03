@@ -24,6 +24,10 @@ namespace PulseX.Core.Models
         public string? ActionUrl { get; set; } // Deep link URL for mobile/web
         public string? IconType { get; set; } // Icon to display: success, warning, alert, info
         
+        // Actor who triggered this notification (e.g. doctor who liked/commented)
+        public string? ActorName { get; set; }
+        public string? ActorAvatar { get; set; }
+
         public bool IsRead { get; set; } = false;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? ReadAt { get; set; }

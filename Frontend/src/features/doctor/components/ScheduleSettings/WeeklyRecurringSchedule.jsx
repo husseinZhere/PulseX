@@ -40,25 +40,14 @@ const WeeklyRecurringSchedule = ({ weeklySchedule, onScheduleChange, onSave }) =
       <div className="space-y-2.5 relative">
         {WEEK_ROWS.map(({ label, num }) => {
           const row = weeklySchedule[num] || { startTime: '', endTime: '' };
-          const isWeekend = num === 0 || num === 6; // Sunday or Saturday
           const hours = calcHours(row.startTime, row.endTime);
 
           return (
             <div
               key={label}
-              className={`rounded-[16px] border px-3 sm:px-4 py-3 grid grid-cols-1 md:grid-cols-[122px_1fr_1fr_56px] gap-2 md:gap-3 items-center transition-colors ${
-                isWeekend
-                  ? 'bg-[#F5F8FC] dark:bg-[#101B2E] border-[#E3EAF5] dark:border-[#25324A]'
-                  : 'bg-[#F8FBFF] dark:bg-[#132036] border-[#E3EAF5] dark:border-[#2A3650] hover:border-brand-main/35'
-              }`}
+              className="rounded-[16px] border px-3 sm:px-4 py-3 grid grid-cols-1 md:grid-cols-[122px_1fr_1fr_56px] gap-2 md:gap-3 items-center transition-colors bg-[#F8FBFF] dark:bg-[#132036] border-[#E3EAF5] dark:border-[#2A3650] hover:border-brand-main/35"
             >
-              <span
-                className={`inline-flex h-9 items-center justify-center rounded-xl border px-2 text-[13px] font-semibold md:text-center ${
-                  isWeekend
-                    ? 'border-[#D9E3F1] dark:border-[#2A3650] bg-[#EEF3FA] dark:bg-[#152138] text-[#6B7280] dark:text-[#8E9CB3]'
-                    : 'border-[#D7E3F4] dark:border-[#33435F] bg-white dark:bg-[#0F1A30] text-black-main-text dark:text-[#E2E8F0]'
-                }`}
-              >
+              <span className="inline-flex h-9 items-center justify-center rounded-xl border px-2 text-[13px] font-semibold md:text-center border-[#D7E3F4] dark:border-[#33435F] bg-white dark:bg-[#0F1A30] text-black-main-text dark:text-[#E2E8F0]">
                 {label}
               </span>
 
@@ -68,12 +57,7 @@ const WeeklyRecurringSchedule = ({ weeklySchedule, onScheduleChange, onSave }) =
                   type="time"
                   value={row.startTime}
                   onChange={(e) => onScheduleChange(num, 'startTime', e.target.value)}
-                  disabled={isWeekend}
-                  className={`mt-1 w-full h-10 ${isWeekend ? 'rounded-md' : 'rounded-full'} border px-3 text-[12px] outline-none ${
-                    isWeekend
-                      ? 'border-[#DCE3EB] dark:border-[#2B3850] bg-[#EEF2F6] dark:bg-[#152136] text-[#9CA3AF] cursor-not-allowed'
-                      : 'border-[#DCE3EB] dark:border-[#32415E] bg-white dark:bg-[#0F1A30] text-black-main-text dark:text-gray-100 focus:border-brand-main focus:ring-2 focus:ring-brand-main/20'
-                  }`}
+                  className="mt-1 w-full h-10 rounded-full border px-3 text-[12px] outline-none border-[#DCE3EB] dark:border-[#32415E] bg-white dark:bg-[#0F1A30] text-black-main-text dark:text-gray-100 focus:border-brand-main focus:ring-2 focus:ring-brand-main/20"
                 />
               </label>
 
@@ -83,12 +67,7 @@ const WeeklyRecurringSchedule = ({ weeklySchedule, onScheduleChange, onSave }) =
                   type="time"
                   value={row.endTime}
                   onChange={(e) => onScheduleChange(num, 'endTime', e.target.value)}
-                  disabled={isWeekend}
-                  className={`mt-1 w-full h-10 ${isWeekend ? 'rounded-md' : 'rounded-full'} border px-3 text-[12px] outline-none ${
-                    isWeekend
-                      ? 'border-[#DCE3EB] dark:border-[#2B3850] bg-[#EEF2F6] dark:bg-[#152136] text-[#9CA3AF] cursor-not-allowed'
-                      : 'border-[#DCE3EB] dark:border-[#32415E] bg-white dark:bg-[#0F1A30] text-black-main-text dark:text-gray-100 focus:border-brand-main focus:ring-2 focus:ring-brand-main/20'
-                  }`}
+                  className="mt-1 w-full h-10 rounded-full border px-3 text-[12px] outline-none border-[#DCE3EB] dark:border-[#32415E] bg-white dark:bg-[#0F1A30] text-black-main-text dark:text-gray-100 focus:border-brand-main focus:ring-2 focus:ring-brand-main/20"
                 />
               </label>
 

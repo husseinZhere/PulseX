@@ -15,10 +15,22 @@ import {
 import { FiCalendar } from 'react-icons/fi';
 import { readProfilePhoto, subscribeProfilePhoto } from '../../../../utils/profilePhotoStorage';
 import { getAllActivityLogs } from '../../../../services/adminService';
+import { useAuth } from '../../../../context/AuthContext';
+import { playNotificationSound } from '../../../../utils/notificationSound';
+
+const toUtcDate = (timestamp) => {
+  if (!timestamp) return null;
+  const s = String(timestamp);
+  // If no timezone indicator, backend sent UTC without 'Z' — add it
+  const utc = /[Z+]/.test(s) ? s : s + 'Z';
+  return new Date(utc);
+};
 
 const formatTimeAgo = (timestamp) => {
-  if (!timestamp) return '';
-  const diff = Date.now() - new Date(timestamp).getTime();
+  const d = toUtcDate(timestamp);
+  if (!d || isNaN(d)) return '';
+  const diff = Date.now() - d.getTime();
+  if (diff < 0) return 'Just now';
   const mins = Math.floor(diff / 60000);
   if (mins < 1) return 'Just now';
   if (mins < 60) return `${mins} minute${mins !== 1 ? 's' : ''} ago`;
@@ -47,12 +59,13 @@ const NotifIcon = ({ type }) => {
 /* ─── Component ─────────────────────────────────────────────── */
 const AdminHeader = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isNotifOpen, setIsNotifOpen] = useState(false);
-  const [adminData] = useState({ name: 'Tayem Zayed', role: 'Admin', image: '' });
   const [adminPhoto, setAdminPhoto] = useState(() => readProfilePhoto('admin'));
   const [notifications, setNotifications] = useState([]);
   const notifRef = useRef();
+  const prevLogIdsRef = useRef(null);
 
   /* clock tick every minute */
   useEffect(() => {
@@ -72,33 +85,58 @@ const AdminHeader = () => {
 
   useEffect(() => subscribeProfilePhoto('admin', setAdminPhoto), []);
 
-  /* load real activity logs as admin notifications */
-  useEffect(() => {
+  const loadNotifications = () => {
     getAllActivityLogs()
       .then((logs) => {
-        const recent = (Array.isArray(logs) ? logs : [])
-          .slice(0, 10)
-          .map((log) => {
+        const sorted = (Array.isArray(logs) ? logs : [])
+          .slice()
+          .sort((a, b) => toUtcDate(b.timestamp) - toUtcDate(a.timestamp));
+
+        const topSorted = sorted.slice(0, 20);
+        const currentIds = new Set(topSorted.map((log) => log.id));
+        if (prevLogIdsRef.current !== null) {
+          let hasNew = false;
+          for (const id of currentIds) {
+            if (!prevLogIdsRef.current.has(id)) { hasNew = true; break; }
+          }
+          if (hasNew) playNotificationSound();
+        }
+        prevLogIdsRef.current = currentIds;
+
+        setNotifications((prev) => {
+          const readIds = new Set(prev.filter((n) => n.isRead).map((n) => n.id));
+          return topSorted.map((log) => {
             const a = (log.action || '').toLowerCase();
             let type = 'other';
-            if (a.includes('report')) type = 'report';
-            else if (a.includes('creat') || a.includes('add') || a.includes('register')) type = 'create';
-            else if (a.includes('delete') || a.includes('remov')) type = 'delete';
+            if (a.includes('report') || a.includes('flag') || a.includes('moderate')) type = 'report';
+            else if (a.includes('creat') || a.includes('add') || a.includes('register') || a.includes('publish')) type = 'create';
+            else if (a.includes('delete') || a.includes('remov') || a.includes('hide')) type = 'delete';
             else if (a.includes('approv') || a.includes('reject')) type = 'approve';
-            else if (a.includes('update') || a.includes('status') || a.includes('edit')) type = 'update';
+            else if (a.includes('update') || a.includes('status') || a.includes('edit') || a.includes('change')) type = 'update';
             return {
               id: log.id,
               type,
               title: log.action || 'System Activity',
               description: log.details || `${log.userName || ''} performed an action`.trim(),
               timeAgo: formatTimeAgo(log.timestamp),
-              isRead: false,
+              isRead: readIds.has(log.id),
             };
           });
-        setNotifications(recent);
+        });
       })
-      .catch(() => setNotifications([]));
+      .catch(() => {});
+  };
+
+  /* initial load + poll every 15s so the bell badge & sound fire without
+     the admin having to open the panel. */
+  useEffect(() => {
+    loadNotifications();
+    const id = setInterval(loadNotifications, 15000);
+    return () => clearInterval(id);
   }, []);
+
+  /* refresh every time the panel opens */
+  useEffect(() => { if (isNotifOpen) loadNotifications(); }, [isNotifOpen]);
 
   /* ── actions ── */
   const markRead = (id) =>
@@ -270,12 +308,14 @@ const AdminHeader = () => {
             />
           ) : (
             <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-400 to-brand-main flex items-center justify-center text-white font-bold text-sm shadow-sm">
-              {adminData.name.charAt(0)}
+              {(user?.firstName || user?.fullName || 'A').charAt(0).toUpperCase()}
             </div>
           )}
           <div className="hidden md:flex flex-col">
-            <p className="text-[13px] font-bold text-black-main-text dark:text-[#E2E8F0] font-roboto whitespace-nowrap">{adminData.name}</p>
-            <p className="text-[10px] font-semibold text-gray-400 font-roboto uppercase tracking-wider">{adminData.role}</p>
+            <p className="text-[13px] font-bold text-black-main-text dark:text-[#E2E8F0] font-roboto whitespace-nowrap">
+              {user?.fullName || `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'Admin'}
+            </p>
+            <p className="text-[10px] font-semibold text-gray-400 font-roboto uppercase tracking-wider">Admin</p>
           </div>
         </div>
       </div>

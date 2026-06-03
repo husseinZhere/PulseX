@@ -8,16 +8,22 @@ import { listDoctors } from '../../../../services/doctorService';
 import { resolveFileUrl } from '../../../../utils/api';
 
 const PRICE_RANGES = [
-  { label: 'All', min: 0, max: Infinity },
-  { label: '$0–$100', min: 0, max: 100 },
-  { label: '$100–$200', min: 100, max: 200 },
-  { label: '$200+', min: 200, max: Infinity },
+  { label: 'All',          min: 0,   max: Infinity },
+  { label: 'Under $200',   min: 0,   max: 200 },
+  { label: '$200 – $400',  min: 200, max: 400 },
+  { label: '$400+',        min: 400, max: Infinity },
 ];
 const PER_PAGE = 6;
 
+const withDrPrefix = (name) => {
+  if (!name) return '';
+  const t = name.trim();
+  return /^dr\.?\s/i.test(t) ? t : `DR. ${t}`;
+};
+
 const mapDoctor = (d) => ({
   id: d.id,
-  name: d.fullName || d.name || 'Doctor',
+  name: withDrPrefix(d.fullName || d.name || 'Doctor'),
   loc: d.clinicLocation || d.location || '',
   rate: Math.round(d.averageRating ?? d.rate ?? 0),
   reviews: d.totalRatings ?? d.reviews ?? 0,
@@ -89,13 +95,17 @@ const PatientDoctorList = () => {
 
   const filtered = useMemo(() => {
     const pr = PRICE_RANGES[priceRange];
-    return allDoctors.filter((d) => {
+    const result = allDoctors.filter((d) => {
       const matchName = d.name.toLowerCase().includes(search.toLowerCase());
       const matchLoc = location === 'All' || d.loc === location;
-      const matchPrice = d.price >= pr.min && d.price < pr.max;
+      const matchPrice = pr.max === Infinity
+        ? d.price >= pr.min
+        : d.price >= pr.min && d.price < pr.max;
       const matchRate = rating === 'all' || d.rate >= parseInt(rating, 10);
       return matchName && matchLoc && matchPrice && matchRate;
     });
+    if (rating === 'all') result.sort((a, b) => b.rate - a.rate);
+    return result;
   }, [allDoctors, search, location, priceRange, rating]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));

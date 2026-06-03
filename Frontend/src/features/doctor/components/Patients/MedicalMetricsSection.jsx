@@ -27,11 +27,11 @@ const Select = ({ label, icon, value, onChange, options }) => (
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-11 w-full bg-transparent text-[14px] outline-none text-[#111827] dark:text-gray-100"
+        className="h-11 w-full bg-[#F9FAFB] dark:bg-[#0B1120] text-[14px] outline-none text-[#111827] dark:text-gray-100"
       >
-        <option value="">Select {label.toLowerCase()}</option>
+        <option value="" className="bg-[#F9FAFB] dark:bg-[#0B1120]">Select {label.toLowerCase()}</option>
         {options.map((option) => (
-          <option key={option.value} value={option.value}>{option.label}</option>
+          <option key={option.value} value={option.value} className="bg-[#F9FAFB] dark:bg-[#0B1120]">{option.label}</option>
         ))}
       </select>
     </div>

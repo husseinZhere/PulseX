@@ -228,3 +228,35 @@ __pycache__/
 # Uploaded Files (Medical Records, etc.)
 **/Uploads/**
 !**/Uploads/.gitkeep
+
+# Environment variables (never commit secrets)
+.env
+.env.local
+Frontend/.env
+Frontend/.env.local
+Frontend/.env.production.local
+
+# Production config with real credentials (never commit)
+**/appsettings.Production.json
+
+# Internal docs / AI assistant instructions (may contain working notes/credentials)
+CLAUDE.md
+PulseX.md
+.claude/
+
+# Build / publish artifacts (never commit)
+**/.verify-build/
+**/publish/
+**/publish_x86/
+**/publish_new/
+**/*.zip
+**/App_Offline.htm
+
+# Python virtual environments
+venv/
+.venv/
+env/
+__pycache__/
+
+# AI service uploads (runtime only)
+backend/ai-service/uploads/

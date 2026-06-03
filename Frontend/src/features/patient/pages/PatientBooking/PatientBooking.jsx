@@ -33,6 +33,7 @@ const PatientBooking = () => {
   const [selectedTime, setSelectedTime] = useState(null);
   const [toast, setToast] = useState({ visible: false, title: '', message: '', type: 'success' });
   const [availableSlotsMap, setAvailableSlotsMap] = useState({});
+  const [bookedSlotsMap, setBookedSlotsMap] = useState({});
 
   useEffect(() => {
     document.title = 'Booking | PulseX';
@@ -71,13 +72,26 @@ const PatientBooking = () => {
       try {
         const iso = toLocalDateStr(selectedDate.year, selectedDate.month, selectedDate.day);
         const resp = await getAvailableSlots(id, iso);
-        const slots = resp?.availableSlots || resp?.availableTimes || [];
-        const times = Array.isArray(slots)
-          ? slots.map((s) => (typeof s === 'string' ? s : s.time)).filter(Boolean)
-          : [];
+        // The /slots endpoint returns { availableSlots: [{ time, isAvailable }] }.
+        // Split those into truly-available vs already-booked so booked slots are
+        // shown disabled/faded up front instead of failing at the payment step.
+        const rawSlots = resp?.availableSlots ?? resp?.availableTimes ?? [];
+        const times = [];
+        const bookedList = Array.isArray(resp?.bookedTimes) ? [...resp.bookedTimes] : [];
+        if (Array.isArray(rawSlots)) {
+          for (const s of rawSlots) {
+            if (typeof s === 'string') {
+              times.push(s);
+            } else if (s?.time) {
+              if (s.isAvailable === false) bookedList.push(s.time);
+              else times.push(s.time);
+            }
+          }
+        }
         const key = `${selectedDate.year}-${selectedDate.month}-${selectedDate.day}`;
         if (!ignore) {
           setAvailableSlotsMap((prev) => ({ ...prev, [key]: times }));
+          setBookedSlotsMap((prev) => ({ ...prev, [key]: bookedList }));
         }
       } catch (err) {
         console.error('Load slots failed', err);
@@ -103,6 +117,7 @@ const PatientBooking = () => {
 
   const key = `${selectedDate.year}-${selectedDate.month}-${selectedDate.day}`;
   const timesForDay = availableSlotsMap[key] || [];
+  const bookedForDay = bookedSlotsMap[key] || [];
 
   const isSelectedDay = (day) => selectedDate.day === day && selectedDate.month === calMonth && selectedDate.year === calYear;
   const stepperDateLabel = `${selectedDate.day} ${MONTH_NAMES[selectedDate.month].slice(0, 3)}, ${selectedDate.year}`;
@@ -142,6 +157,8 @@ const PatientBooking = () => {
       state: {
         doctorId: Number(id),
         doctorName: doctor?.name,
+        doctorImg: doctor?.img,
+        doctorTitle: doctor?.title,
         date: stepperDateLabel,
         isoDate: toLocalDateStr(selectedDate.year, selectedDate.month, selectedDate.day),
         time: selectedTime,
@@ -160,7 +177,7 @@ const PatientBooking = () => {
 
   return (
     <main
-      className="min-h-screen flex flex-col items-center justify-start bg-[#F9FAFB] dark:bg-[#0B1120] rounded-[22px] p-4 sm:p-6 lg:p-8"
+      className="min-h-screen flex flex-col items-center justify-start bg-white dark:bg-[#111827] rounded-[22px] p-4 sm:p-6 lg:p-8"
     >
       <h1 className="sr-only">Book an appointment</h1>
 
@@ -195,9 +212,16 @@ const PatientBooking = () => {
 
               <BookingTimeSlots
                 dayLabel={dayOfWeekLabel}
-                timesForDay={timesForDay}
+                timesForDay={[...timesForDay, ...bookedForDay].sort()}
+                bookedTimes={bookedForDay}
                 selectedTime={selectedTime}
                 onSelect={setSelectedTime}
+                onBookedClick={() => setToast({
+                  visible: true,
+                  type: 'warning',
+                  title: 'Time Slot Unavailable',
+                  message: 'This time slot is already booked. Please choose another time.',
+                })}
               />
             </div>
           </section>
