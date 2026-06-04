@@ -1,6 +1,6 @@
-const MessagesList = ({ messages, doctorImg, doctorName, bottomRef }) => {
+const MessagesList = ({ messages, doctorImg, doctorName, bottomRef, containerRef }) => {
   return (
-    <section className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-4" aria-label="Conversation">
+    <section ref={containerRef} className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-4" aria-label="Conversation">
       {messages.map((msg) => {
         const isMe = msg.from === 'me';
         return (

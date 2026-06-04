@@ -9,6 +9,7 @@ import { FaLinkedin } from "react-icons/fa";
 import { RiInstagramLine } from "react-icons/ri";
 import { Link } from 'react-router-dom';
 import logoImg from '../../assets/logo/logo.svg';
+import { getStartedPath } from '../../utils/authNav';
 
 const STATS = [
   { label: 'Success Rate', target: 95, suffix: '%' },
@@ -82,7 +83,7 @@ const Footer = () => {
     <footer className="pt-4 pb-8 border-t border-gray-100 dark:border-gray-800 relative overflow-hidden bg-[#FAFAFA] dark:bg-[#111827]">
 
       <div className="flex flex-col items-center relative z-10 font-inter px-4 pb-10 border-b border-gray-100 dark:border-gray-800">
-        <Link to="/register" className="px-7 py-4 rounded-full flex items-center gap-3 bg-gradient-to-r from-[#0913C3] to-[#FF0000] shadow-lg dark:shadow-none hover:shadow-2xl dark:shadow-none hover:scale-105 transition-all duration-300 group">
+        <Link to={getStartedPath()} className="px-7 py-4 rounded-full flex items-center gap-3 bg-gradient-to-r from-[#0913C3] to-[#FF0000] shadow-lg dark:shadow-none hover:shadow-2xl dark:shadow-none hover:scale-105 transition-all duration-300 group">
           <FaRocket className="w-5 h-5 text-white" />
           <span className="font-inter font-bold text-sm md:text-[16px] text-white tracking-wide">
             Start Your Journey Now
@@ -132,11 +133,6 @@ const Footer = () => {
             <li><Link to="/contact" className="text-[16px] text-gray-text-dim2 hover:text-brand-main transition-colors font-medium">Contact Us</Link></li>
             <li><Link to="/emergency" className="text-[16px] text-gray-text-dim2 hover:text-red-500 transition-colors font-medium flex items-center gap-1.5">🚨 Cardiac Emergency</Link></li>
           </ul>
-          <div className="mt-8">
-            <Link to="/register" className="bg-brand-main text-white px-6 py-3 rounded-full text-[14px] font-medium inline-flex items-center gap-2 hover:bg-[#282eb5] transition-colors shadow-md dark:shadow-none group">
-              Get Started <FaArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-            </Link>
-          </div>
         </div>
 
         <div className="md:col-span-2">

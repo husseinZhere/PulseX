@@ -3,10 +3,11 @@ import { motion, useInView } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
   MdFavorite, MdSmartToy, MdSecurity, MdPeople, MdMonitor,
-  MdArrowForward, MdCheckCircle, MdScience, MdSchool,
+  MdArrowForward, MdCheckCircle,
 } from 'react-icons/md';
 import { FaHeartbeat, FaUserMd, FaBrain, FaShieldAlt } from 'react-icons/fa';
 import logoImg from '../../../../assets/logo/logo.svg';
+import { isLoggedIn, getStartedPath } from '../../../../utils/authNav';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
@@ -57,17 +58,6 @@ const STEPS = [
   { num: '04', title: 'Monitor Your Health', desc: 'Track prescriptions, medical records, and heart health trends over time.', icon: <MdMonitor size={22} /> },
 ];
 
-const TECH = [
-  { label: 'React 18 + Vite', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' },
-  { label: 'ASP.NET Core 8', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300' },
-  { label: 'FastAPI + Python', color: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300' },
-  { label: 'TensorFlow / Keras', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300' },
-  { label: 'SignalR Real-time', color: 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300' },
-  { label: 'SQL Server + EF Core', color: 'bg-slate-100 text-slate-700 dark:bg-slate-700/40 dark:text-slate-300' },
-  { label: 'Tailwind CSS', color: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300' },
-  { label: 'DenseNet121 CNN', color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300' },
-];
-
 export default function About() {
   return (
     <div className="min-h-screen bg-[#FAFBFD] dark:bg-[#020617] font-inter">
@@ -86,7 +76,7 @@ export default function About() {
             transition={{ duration: 0.5 }}
             className="inline-flex items-center gap-2 bg-brand-main/10 dark:bg-brand-main/20 text-brand-main rounded-full px-4 py-1.5 text-sm font-semibold mb-6"
           >
-            <MdScience size={16} /> Graduation Research Project
+            <MdFavorite size={16} /> AI-Powered Cardiac Care
           </motion.div>
 
           <motion.h1
@@ -119,12 +109,14 @@ export default function About() {
             transition={{ duration: 0.6, delay: 0.34 }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <Link
-              to="/register"
-              className="inline-flex items-center gap-2 bg-brand-main text-white px-8 py-3.5 rounded-full font-semibold hover:bg-[#252CBF] transition-all hover:shadow-lg hover:shadow-brand-main/30 active:scale-95"
-            >
-              Get Started <MdArrowForward size={18} />
-            </Link>
+            {!isLoggedIn() && (
+              <Link
+                to="/register"
+                className="inline-flex items-center gap-2 bg-brand-main text-white px-8 py-3.5 rounded-full font-semibold hover:bg-[#252CBF] transition-all hover:shadow-lg hover:shadow-brand-main/30 active:scale-95"
+              >
+                Get Started <MdArrowForward size={18} />
+              </Link>
+            )}
             <Link
               to="/contact"
               className="inline-flex items-center gap-2 border border-gray-200 dark:border-gray-700 text-black-main-text dark:text-white px-8 py-3.5 rounded-full font-semibold hover:border-brand-main hover:text-brand-main transition-all"
@@ -192,67 +184,29 @@ export default function About() {
         </div>
       </Section>
 
-      {/* ── Tech Stack ──────────────────────────────────────────── */}
-      <Section className="max-w-5xl mx-auto px-6 py-24">
-        <motion.div variants={fadeUp} className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full px-4 py-1.5 text-sm font-semibold mb-4">
-            <MdScience size={16} /> Technology Stack
-          </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-black-main-text dark:text-white mb-4">
-            Built with Modern Technologies
-          </h2>
-          <p className="text-gray-text-dim2 max-w-xl mx-auto">
-            PulseX integrates cutting-edge frameworks across three independent services — Frontend, Backend API, and AI Service.
-          </p>
-        </motion.div>
-
-        <motion.div variants={fadeUp} className="flex flex-wrap justify-center gap-3">
-          {TECH.map((t) => (
-            <span key={t.label} className={`px-4 py-2 rounded-full text-sm font-semibold ${t.color}`}>
-              {t.label}
-            </span>
-          ))}
-        </motion.div>
-
-        <motion.div variants={fadeUp} className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            { title: 'Frontend', port: '5173', desc: 'React 18 + Vite + Tailwind CSS + Framer Motion + SignalR client', icon: '⚛️' },
-            { title: 'Backend API', port: '5245', desc: 'ASP.NET Core 8 · Entity Framework · SignalR Hubs · JWT Auth', icon: '⚙️' },
-            { title: 'AI Service', port: '8001', desc: 'FastAPI · DenseNet121 X-ray CNN · Recommendation Engine · Chatbot', icon: '🧠' },
-          ].map((s) => (
-            <div key={s.title} className="bg-white dark:bg-[#0F172A] border border-gray-100 dark:border-gray-800 rounded-2xl p-6">
-              <div className="text-3xl mb-3">{s.icon}</div>
-              <div className="flex items-center gap-2 mb-2">
-                <h4 className="font-bold text-black-main-text dark:text-white">{s.title}</h4>
-                <span className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-2 py-0.5 rounded-full">:{s.port}</span>
-              </div>
-              <p className="text-sm text-gray-text-dim2 leading-relaxed">{s.desc}</p>
-            </div>
-          ))}
-        </motion.div>
-      </Section>
-
-      {/* ── Graduation Badge ────────────────────────────────────── */}
+      {/* ── Vision / CTA ────────────────────────────────────────── */}
       <Section className="bg-gradient-to-br from-brand-main to-[#1a1f9e] dark:from-[#0d1150] dark:to-[#060c3b]">
         <div className="max-w-4xl mx-auto px-6 py-20 text-center">
           <motion.div variants={fadeUp} className="inline-flex items-center gap-2 bg-white/10 text-white rounded-full px-4 py-1.5 text-sm font-semibold mb-6">
-            <MdSchool size={16} /> Graduation Project 2026
+            <MdFavorite size={16} /> Your Heart, Our Priority
           </motion.div>
           <motion.h2 variants={fadeUp} custom={1} className="text-3xl md:text-4xl font-bold text-white mb-5">
             A Vision for the Future of Cardiac Health
           </motion.h2>
           <motion.p variants={fadeUp} custom={2} className="text-white/70 max-w-2xl mx-auto text-lg leading-relaxed mb-10">
-            PulseX was developed as a graduation research project — combining clinical knowledge,
-            full-stack engineering, and AI research to demonstrate how technology can transform
-            preventive cardiovascular care.
+            PulseX brings clinical expertise, intelligent technology, and a human-centered
+            experience together in one place — helping people understand their heart health,
+            connect with specialists, and act early to stay ahead of cardiovascular risk.
           </motion.p>
           <motion.div variants={fadeUp} custom={3} className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/register"
-              className="inline-flex items-center gap-2 bg-white text-brand-main px-8 py-3.5 rounded-full font-bold hover:bg-gray-100 transition-all active:scale-95"
-            >
-              Try PulseX <MdArrowForward size={18} />
-            </Link>
+            {!isLoggedIn() && (
+              <Link
+                to={getStartedPath()}
+                className="inline-flex items-center gap-2 bg-white text-brand-main px-8 py-3.5 rounded-full font-bold hover:bg-gray-100 transition-all active:scale-95"
+              >
+                Try PulseX <MdArrowForward size={18} />
+              </Link>
+            )}
             <Link
               to="/contact"
               className="inline-flex items-center gap-2 border border-white/30 text-white px-8 py-3.5 rounded-full font-semibold hover:bg-white/10 transition-all"

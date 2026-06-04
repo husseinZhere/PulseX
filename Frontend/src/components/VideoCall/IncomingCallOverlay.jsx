@@ -15,6 +15,15 @@ const IncomingCallOverlay = ({ currentRole }) => {
   const connectionRef = useRef(null);
   const handledSessionsRef = useRef(new Set());
 
+  // De-dupe the burst of duplicate IncomingCall events for the same session, but
+  // only briefly — the backend may reuse the same session id for a follow-up
+  // call, so a permanent block would silently swallow the next ring until a page
+  // refresh. Auto-clear after a short window so re-calls ring again.
+  const markSessionHandled = (sessionId) => {
+    handledSessionsRef.current.add(sessionId);
+    setTimeout(() => handledSessionsRef.current.delete(sessionId), 15000);
+  };
+
   useEffect(() => {
     let disposed = false;
 
@@ -22,7 +31,13 @@ const IncomingCallOverlay = ({ currentRole }) => {
       .withUrl(`${API_BASE_URL}/hubs/videocall`, {
         accessTokenFactory: () => getToken() || '',
       })
-      .withAutomaticReconnect()
+      // Retry FOREVER (exponential backoff capped at 15s). The default policy
+      // gives up after ~30s, which left the overlay permanently disconnected
+      // after a call — so a follow-up ring never arrived until a page refresh.
+      .withAutomaticReconnect({
+        nextRetryDelayInMilliseconds: (ctx) =>
+          Math.min(2000 * 2 ** Math.min(ctx.previousRetryCount, 3), 15000),
+      })
       .configureLogging(LogLevel.Warning)
       .build();
 
@@ -35,9 +50,19 @@ const IncomingCallOverlay = ({ currentRole }) => {
       setIncomingCall(payload);
     });
 
-    connection.start()
-      .then(() => console.log('[IncomingCallOverlay] hub connected'))
-      .catch((err) => console.error('[IncomingCallOverlay] hub connection failed', err));
+    // If the connection fully closes (reconnect attempts exhausted, server
+    // restart, etc.), keep trying to bring it back so the user never has to
+    // refresh to receive the next call.
+    const restart = () => {
+      if (disposed) return;
+      connection.start()
+        .then(() => console.log('[IncomingCallOverlay] hub connected'))
+        .catch(() => { if (!disposed) setTimeout(restart, 3000); });
+    };
+
+    connection.onclose(() => { if (!disposed) setTimeout(restart, 2000); });
+
+    restart();
 
     return () => {
       disposed = true;
@@ -52,7 +77,7 @@ const IncomingCallOverlay = ({ currentRole }) => {
     if (!incomingCall) return;
 
     const sessionId = String(incomingCall.sessionId);
-    handledSessionsRef.current.add(sessionId);
+    markSessionHandled(sessionId);
 
     if (currentRole === 'Doctor') {
       navigate('/doctor/messages', {
@@ -81,7 +106,7 @@ const IncomingCallOverlay = ({ currentRole }) => {
     if (!incomingCall) return;
 
     const sessionId = String(incomingCall.sessionId);
-    handledSessionsRef.current.add(sessionId);
+    markSessionHandled(sessionId);
 
     try {
       if (connectionRef.current?.state === HubConnectionState.Connected) {

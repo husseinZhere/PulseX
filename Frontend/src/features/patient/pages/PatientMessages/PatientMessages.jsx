@@ -70,6 +70,9 @@ const PatientMessages = () => {
 
     const fileRef = useRef(null);
     const bottomRef = useRef(null);
+    const chatScrollRef = useRef(null);
+    const prevActiveIdRef = useRef(null);
+    const prevMsgCountRef = useRef(0);
     const doctorsRef = useRef([]);
     const syncInFlightRef = useRef(false);
     const pendingAutoStartCallRef = useRef(false);
@@ -331,8 +334,25 @@ const PatientMessages = () => {
         }
     }, []);
 
+    // Only auto-scroll when switching conversation or when a new message
+    // arrives while the user is already near the bottom — never yank them down
+    // while they're reading older messages.
     useEffect(() => {
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+        const el = chatScrollRef.current;
+        const count = (convos[activeId] ?? []).length;
+        const switchedConvo = prevActiveIdRef.current !== activeId;
+        const nearBottom = el
+            ? el.scrollHeight - el.scrollTop - el.clientHeight < 120
+            : true;
+
+        if (switchedConvo) {
+            bottomRef.current?.scrollIntoView({ behavior: 'auto' });
+        } else if (count > prevMsgCountRef.current && nearBottom) {
+            bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        prevActiveIdRef.current = activeId;
+        prevMsgCountRef.current = count;
     }, [convos, activeId]);
 
     useEffect(() => {
@@ -496,9 +516,7 @@ const PatientMessages = () => {
                                     if (!canStartVideoCall) return;
                                     setIncomingCallAutoStart(false);
                                     setIsVideoCallOpen(true);
-                                    // Fallback: send Jitsi link as chat message for other party not on hub
-                                    const jitsiUrl = `https://jitsi.member.fsf.org/PulseXAppt${activeAppointmentId}`;
-                                    sendMsg(`📹 Video call invitation – Join the meeting: ${jitsiUrl}`);
+                                    sendMsg('📹 Video call started');
                                 }}
                             />
                             <MessagesList
@@ -506,6 +524,7 @@ const PatientMessages = () => {
                                 doctorImg={doctor?.img}
                                 doctorName={doctor?.name}
                                 bottomRef={bottomRef}
+                                containerRef={chatScrollRef}
                             />
                             {doctor.canChat ? (
                                 <MessageInputBar

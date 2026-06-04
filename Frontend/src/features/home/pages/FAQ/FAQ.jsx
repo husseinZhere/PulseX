@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { isLoggedIn } from '../../../../utils/authNav';
 import { MdArrowForward, MdQuestionAnswer, MdSearch } from 'react-icons/md';
 import { FaHeartbeat, FaUserMd, FaBrain, FaLock } from 'react-icons/fa';
 
@@ -237,12 +238,14 @@ export default function FAQ() {
               >
                 Contact Us <MdArrowForward size={16} />
               </Link>
-              <Link
-                to="/register"
-                className="inline-flex items-center justify-center gap-2 border border-gray-200 dark:border-gray-700 text-black-main-text dark:text-white px-7 py-3 rounded-full font-semibold hover:border-brand-main hover:text-brand-main transition-all text-sm"
-              >
-                Register for Free
-              </Link>
+              {!isLoggedIn() && (
+                <Link
+                  to="/register"
+                  className="inline-flex items-center justify-center gap-2 border border-gray-200 dark:border-gray-700 text-black-main-text dark:text-white px-7 py-3 rounded-full font-semibold hover:border-brand-main hover:text-brand-main transition-all text-sm"
+                >
+                  Register for Free
+                </Link>
+              )}
             </div>
           </motion.div>
         </div>

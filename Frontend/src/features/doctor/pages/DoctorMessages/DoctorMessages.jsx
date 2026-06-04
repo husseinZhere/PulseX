@@ -72,6 +72,9 @@ const DoctorMessages = () => {
 
     const fileRef = useRef(null);
     const bottomRef = useRef(null);
+    const chatScrollRef = useRef(null);
+    const prevActiveIdRef = useRef(null);
+    const prevMsgCountRef = useRef(0);
     const patientsRef = useRef([]);
     const syncInFlightRef = useRef(false);
     const pendingAutoStartCallRef = useRef(false);
@@ -332,8 +335,26 @@ const DoctorMessages = () => {
         }
     }, []);
 
+    // Auto-scroll to the newest message only when the user opens a different
+    // conversation, or when a new message arrives while they're already near the
+    // bottom. This stops the chat from yanking back down while reading older
+    // messages on each poll/refresh.
     useEffect(() => {
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+        const el = chatScrollRef.current;
+        const count = (convos[activeId] ?? []).length;
+        const switchedConvo = prevActiveIdRef.current !== activeId;
+        const nearBottom = el
+            ? el.scrollHeight - el.scrollTop - el.clientHeight < 120
+            : true;
+
+        if (switchedConvo) {
+            bottomRef.current?.scrollIntoView({ behavior: 'auto' });
+        } else if (count > prevMsgCountRef.current && nearBottom) {
+            bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        prevActiveIdRef.current = activeId;
+        prevMsgCountRef.current = count;
     }, [convos, activeId]);
 
     useEffect(() => {
@@ -521,9 +542,7 @@ const DoctorMessages = () => {
                                     if (!canStartVideoCall) return;
                                     setIncomingCallAutoStart(false);
                                     setIsVideoCallOpen(true);
-                                    // Fallback: send Jitsi link as chat message for patients not on hub
-                                    const jitsiUrl = `https://jitsi.member.fsf.org/PulseXAppt${activeAppointmentId}`;
-                                    sendMsg(`📹 Video call invitation – Join the meeting: ${jitsiUrl}`);
+                                    sendMsg('📹 Video call started');
                                 }}
                             />
 
@@ -532,6 +551,7 @@ const DoctorMessages = () => {
                                 doctorImg={patient?.img}
                                 doctorName={patient?.name}
                                 bottomRef={bottomRef}
+                                containerRef={chatScrollRef}
                             />
 
                             {patient.canChat ? (

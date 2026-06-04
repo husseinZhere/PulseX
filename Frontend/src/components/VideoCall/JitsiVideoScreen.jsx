@@ -2,9 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { MdCallEnd, MdArrowBackIosNew, MdOpenInNew, MdVideocam, MdCall } from 'react-icons/md';
 
-// meet.jit.si & framatalk enforce server-side lobby/auth — use an open instance instead.
-// jitsi.member.fsf.org is maintained by the Free Software Foundation, no lobby, no login required.
-const JITSI_DOMAIN = 'jitsi.member.fsf.org';
+const JITSI_DOMAIN = 'jitsi.hamburg.ccc.de';
 
 const buildJitsiUrl = (appointmentId, displayName) => {
   const room = `PulseXAppt${appointmentId}`;
@@ -16,8 +14,9 @@ const buildJitsiUrl = (appointmentId, displayName) => {
     'config.startWithVideoMuted=false',
     'config.requireDisplayName=false',
     'config.enableLobbyChat=false',
+    'config.lobby.enabled=false',
     'config.disableInitialGUM=false',
-    'config.p2p.enabled=true',
+    'config.p2p.enabled=false',
     `userInfo.displayName=${name}`,
   ].join('&');
   return `https://${JITSI_DOMAIN}/${room}#${params}`;

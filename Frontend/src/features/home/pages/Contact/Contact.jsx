@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import api from '../../../../utils/api';
+import { isLoggedIn } from '../../../../utils/authNav';
 import {
   MdEmail, MdSend, MdCheckCircle, MdArrowForward,
   MdHeadsetMic, MdQuestionAnswer,
@@ -314,26 +315,28 @@ export default function Contact() {
             </div>
           </motion.div>
 
-          {/* Quick links */}
-          <motion.div
-            variants={fadeUp}
-            custom={1}
-            className="bg-gradient-to-br from-brand-main to-[#1a1f9e] rounded-2xl p-6 text-white"
-          >
-            <div className="w-10 h-10 bg-white/15 rounded-xl flex items-center justify-center mb-4">
-              <MdQuestionAnswer size={20} />
-            </div>
-            <h3 className="font-bold text-lg mb-2">New to PulseX?</h3>
-            <p className="text-white/70 text-sm mb-5 leading-relaxed">
-              Create an account in minutes and start your AI-powered cardiac health journey today.
-            </p>
-            <Link
-              to="/register"
-              className="inline-flex items-center gap-2 bg-white text-brand-main px-5 py-2.5 rounded-full text-sm font-bold hover:bg-gray-100 transition-all"
+          {/* New to PulseX? — only for visitors who aren't signed in */}
+          {!isLoggedIn() && (
+            <motion.div
+              variants={fadeUp}
+              custom={1}
+              className="bg-gradient-to-br from-brand-main to-[#1a1f9e] rounded-2xl p-6 text-white"
             >
-              Get Started <MdArrowForward size={16} />
-            </Link>
-          </motion.div>
+              <div className="w-10 h-10 bg-white/15 rounded-xl flex items-center justify-center mb-4">
+                <MdQuestionAnswer size={20} />
+              </div>
+              <h3 className="font-bold text-lg mb-2">New to PulseX?</h3>
+              <p className="text-white/70 text-sm mb-5 leading-relaxed">
+                Create an account in minutes and start your AI-powered cardiac health journey today.
+              </p>
+              <Link
+                to="/register"
+                className="inline-flex items-center gap-2 bg-white text-brand-main px-5 py-2.5 rounded-full text-sm font-bold hover:bg-gray-100 transition-all"
+              >
+                Get Started <MdArrowForward size={16} />
+              </Link>
+            </motion.div>
+          )}
 
         </Section>
       </div>

@@ -9,6 +9,7 @@ import { IoShieldOutline } from "react-icons/io5";
 import { FaCheck } from "react-icons/fa6";
 import { RiPulseLine } from "react-icons/ri";
 import { Link } from 'react-router-dom';
+import { isLoggedIn, getDashboardPath } from '../../../../utils/authNav';
 import './Hero.css';
 const heartImg = '/image/HomeRightSide.svg';
 
@@ -172,10 +173,10 @@ const Hero = () => {
             </div>
 
             <Link
-              to="/register"
-              className="hero-cta w-[176px] h-[48px] text-[15px] rounded-full bg-brand-main hover:bg-[#282eb5] shadow-lg group flex items-center justify-center gap-2 text-white transition-all duration-300 font-bold"
+              to={isLoggedIn() ? getDashboardPath() : '/register'}
+              className="hero-cta w-fit min-w-[176px] px-6 h-[48px] text-[15px] rounded-full bg-brand-main hover:bg-[#282eb5] shadow-lg group flex items-center justify-center gap-2 text-white transition-all duration-300 font-bold"
             >
-              Get Started <FiArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+              {isLoggedIn() ? 'Go to Dashboard' : 'Get Started'} <FiArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
             </Link>
           </div>
 

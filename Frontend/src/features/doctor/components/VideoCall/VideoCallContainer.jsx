@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import JitsiVideoScreen from '../../../../components/VideoCall/JitsiVideoScreen';
+import AgoraVideoScreen from '../../../../components/VideoCall/AgoraVideoScreen';
 import MinimizeModal from './MinimizeModal';
 import FloatingCallWindow from './FloatingCallWindow';
 import useVideoCall from '../../../../hooks/useVideoCall';
@@ -14,6 +14,7 @@ const VideoCallContainer = ({ isOpen, onClose, doctor, appointmentId, asInitiato
   const { user } = useAuth();
 
   const { state, startCall, acceptIncoming, endCall } = useVideoCall();
+  const { appId, channelName, token, uid } = state;
 
   useEffect(() => {
     if (!isOpen || !appointmentId) {
@@ -64,9 +65,11 @@ const VideoCallContainer = ({ isOpen, onClose, doctor, appointmentId, asInitiato
     <>
       <AnimatePresence>
         {isOpen && !isMinimized && (
-          <JitsiVideoScreen
-            appointmentId={appointmentId}
-            displayName={displayName}
+          <AgoraVideoScreen
+            appId={appId}
+            channelName={channelName}
+            token={token}
+            uid={uid}
             callStatus={state.status}
             errorMessage={state.error}
             onBack={() => setShowMinimizeModal(true)}

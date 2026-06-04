@@ -9,6 +9,11 @@ const emptyState = () => ({
     appointmentId: null,
     error: null,
     redirect: null,
+    // Agora credentials
+    appId: null,
+    channelName: null,
+    token: null,
+    uid: null,
 });
 
 export default function useVideoCall() {
@@ -81,7 +86,13 @@ export default function useVideoCall() {
             }
 
             sessionIdRef.current = sessionId;
-            patchState({ sessionId, status: 'connecting' });
+
+            const appId = payload?.appId ?? payload?.AppId ?? '';
+            const channelName = payload?.channelName ?? payload?.ChannelName ?? '';
+            const rawToken = payload?.token ?? payload?.Token ?? null;
+            const uid = payload?.currentUser?.userId ?? payload?.CurrentUser?.UserId ?? 0;
+
+            patchState({ sessionId, status: 'connecting', appId, channelName, token: rawToken || null, uid });
 
             const connection = await ensureConnection();
             await connection.invoke('JoinSession', sessionId);

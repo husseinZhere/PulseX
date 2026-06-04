@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { isLoggedIn } from '../../../../utils/authNav';
 import {
   MdPhone, MdWarning, MdCheckCircle, MdCancel,
   MdFavorite, MdArrowForward, MdLocalHospital, MdTimer,
@@ -332,12 +333,14 @@ export default function Emergency() {
             connect with specialists, and understand your risk before it escalates.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/register"
-              className="inline-flex items-center justify-center gap-2 bg-white text-brand-main px-8 py-3.5 rounded-full font-bold hover:bg-gray-100 transition-all active:scale-95"
-            >
-              Get Started Free <MdArrowForward size={18} />
-            </Link>
+            {!isLoggedIn() && (
+              <Link
+                to="/register"
+                className="inline-flex items-center justify-center gap-2 bg-white text-brand-main px-8 py-3.5 rounded-full font-bold hover:bg-gray-100 transition-all active:scale-95"
+              >
+                Get Started Free <MdArrowForward size={18} />
+              </Link>
+            )}
             <Link
               to="/contact"
               className="inline-flex items-center justify-center gap-2 border border-white/30 text-white px-8 py-3.5 rounded-full font-semibold hover:bg-white/10 transition-all"

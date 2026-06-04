@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using PulseX.API.Helpers;
 using PulseX.Core.DTOs.VideoCall;
 using PulseX.Core.Enums;
 using PulseX.Core.Interfaces;
@@ -292,6 +293,13 @@ namespace PulseX.API.Services
                     "Created new video call session {SessionId} for appointment {AppointmentId}",
                     session.SessionId, appointmentId);
             }
+
+            // Always (re)generate fresh Agora tokens on every join. A session created
+            // by an older build (or before the token format was fixed) would otherwise
+            // hand out an INVALID token, and tokens expire after a couple of hours.
+            // Regenerating guarantees a valid token for this channel each time.
+            session.DoctorToken  = GenerateVideoToken(session.ChannelName, appointment.Doctor!.UserId);
+            session.PatientToken = GenerateVideoToken(session.ChannelName, appointment.Patient!.UserId);
 
             // Update connection status
             if (role == "Doctor")
@@ -730,20 +738,21 @@ namespace PulseX.API.Services
             return Convert.ToBase64String(bytes).Replace("+", "").Replace("/", "").Replace("=", "")[..20];
         }
 
-        /// <summary>
-        /// Generate video SDK token (placeholder for Agora/Twilio token generation)
-        /// </summary>
         private string GenerateVideoToken(string channelName, int userId)
         {
-            // TODO: Implement actual Agora/Twilio token generation
-            // For Agora: Use RtcTokenBuilder2
-            // For Twilio: Use AccessToken
-            
-            // Placeholder token for development
-            using var rng = RandomNumberGenerator.Create();
-            var bytes = new byte[32];
-            rng.GetBytes(bytes);
-            return Convert.ToBase64String(bytes);
+            if (string.IsNullOrEmpty(_videoSdkAppId) || _videoSdkAppId == "YOUR_AGORA_APP_ID" ||
+                string.IsNullOrEmpty(_videoSdkSecret) || _videoSdkSecret == "YOUR_AGORA_SECRET")
+            {
+                // No credentials configured → Agora testing mode (frontend passes null token)
+                return string.Empty;
+            }
+
+            return AgoraTokenBuilder.BuildTokenWithUid(
+                _videoSdkAppId,
+                _videoSdkSecret,
+                channelName,
+                (uint)userId,
+                tokenExpireSeconds: 7200);
         }
 
         /// <summary>
