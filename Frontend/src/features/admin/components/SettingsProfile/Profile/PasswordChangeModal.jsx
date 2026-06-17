@@ -45,7 +45,7 @@ export default function PasswordChangeModal({ isOpen, onClose, onSuccess }) {
       await changePassword({
         currentPassword: pwForm.current,
         newPassword: pwForm.newPw,
-        confirmPassword: pwForm.confirm,
+        confirmNewPassword: pwForm.confirm,
       });
       closeModal();
       onSuccess();

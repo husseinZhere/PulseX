@@ -160,7 +160,7 @@ export default function PatientSettingsProfile() {
       await changePassword({
         currentPassword: pwForm.current,
         newPassword: pwForm.newPw,
-        confirmPassword: pwForm.confirm,
+        confirmNewPassword: pwForm.confirm,
       });
       setPwModal(false);
       setPwForm({ current: '', newPw: '', confirm: '' });
